@@ -1,5 +1,7 @@
 #pragma once
 
+#include <avr/io.h>
+#include <avr/interrupt.h>
 #include <stdint.h>
 #include "motor_control.h"
 
@@ -12,7 +14,7 @@
 
 void USART0_Init()
 {
-	USART0_DDR |= _BV(USART0_TX_BIT); // outputs for TX
+	USART0_DDR |= _BV(USART0_TX_BIT) | _BV(USART0_RX_BIT); // outputs for TX
 	// PORTD |= _BV(PD0) | _BV(PD1); //Set to 1, why?
 	UCSR0C |= _BV(UCSZ00) | _BV(UCSZ01); // Use 8- bit character sizes
 	UBRR0H = (BAUD_PRESCALE >> 8); // Load upper 8- bits of the baud rate value into the high byte of the UBRR register
@@ -29,11 +31,12 @@ static inline void USART0_Transmit(uint8_t data)
 	UDR0 = data;
 }
 
-ISR(USART_RXC_vect)
+ISR(USART0__RX_vect)
+// ISR(USART0_RX_vect)
 {
 	uint8_t cmd = UDR0;
 	//write the command response code here
 	switch(cmd){
-		case 0: turn_right();
+		case 'a': turn_right();
 	}
 }

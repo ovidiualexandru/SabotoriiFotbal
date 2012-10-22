@@ -129,7 +129,7 @@ int main(void)
 	sei();
 	ROLA_POWER = 0;
 	SERVO_POS = 0;
-	_delay_ms(5000);
+	wait_nbk(250);
 	//test movement
 	move_test();
 	//start searching
