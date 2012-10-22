@@ -7,26 +7,10 @@
 #include "motor_control.h"
 #include "sensors.h"
 #include "config.h"
+#include "eeprom_data.h"
+#include "serial_comm.h"
 
-IO_Data io = {\
-	100,\
-	240,\
-	100,\
-	180,\
-	40,\
-	180,\
-	80,\
-	180,\
-	40,\
-	130,\
-	170,\
-	180,\
-	240,\
-	250,\
-	180,\
-	200,\
-	0\
-	};
+IO_Data io;
 
 static inline void init()
 {
@@ -76,6 +60,9 @@ static inline void init()
 	ADMUX |=  _BV(ADLAR);
 	ADCSRA |= _BV(ADEN);
 	ADCSRA |=  _BV(ADPS1) | _BV(ADPS2) | _BV(ADPS0);
+	
+	load_config(&io);
+	USART0_Init();
 }
 
 ISR(TIMER1_OVF_vect)
