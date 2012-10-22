@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include "defines.h"
 #include "motor_control.h"
+#include "eeprom_data.h"
 
 #define USART0_DDR DDRD
 #define USART0_TX_BIT PD1
@@ -77,7 +78,7 @@ void USART0_Init()
 	UCSR0B |= _BV(RXEN0) | _BV(TXEN0) | _BV(RXCIE0); // Turn on the transmission and reception circuitry and the receive interrupt
 }
 
-static inline void USART0_Transmit(uint8_t data)
+static void USART0_Transmit(uint8_t data)
 {
 	// Wait for empty transmit buffer
 	// while( !( UCSR0A & (1<<UDRE0)) );
@@ -86,7 +87,7 @@ static inline void USART0_Transmit(uint8_t data)
 	UDR0 = data;
 }
 
-static inline uint8_t USART0_Receive()
+static uint8_t USART0_Receive()
 {
 	loop_until_bit_is_set(UCSR0A, RXC0);
 	return UDR0;
@@ -95,7 +96,7 @@ static inline uint8_t USART0_Receive()
 ISR(USART0_RX_vect)
 {
 	uint8_t cmd = UDR0;
-	if( cmd >= CMD_PROGRAMMING && cmd <= CMD_READ_SERVO_MOVE_TIME){
+	if( (cmd >= CMD_PROGRAMMING) && (cmd <= CMD_READ_SERVO_MOVE_TIME)){
 		switch(cmd){
 			case CMD_PROGRAMMING: prog_mode = 1;break;
 			case CMD_TURN_LEFT: turn_left(); break;
@@ -132,23 +133,23 @@ ISR(USART0_RX_vect)
 		uint8_t val = USART0_Receive();
 		switch(cmd){
 			case CMD_SET_STOP_TIME: io.stop_time = val; break;
-			case CMD_SET_GET_BALL_POWER: io.stop_time = val; break;
-			case CMD_SET_GET_BALL_TIME: io.stop_time = val; break;
-			case CMD_SET_TURN90_POWER: io.stop_time = val; break;
-			case CMD_SET_TURN90_TIME: io.stop_time = val; break;
-			case CMD_SET_TURN180_POWER: io.stop_time = val; break;
-			case CMD_SET_TURN180_TIME: io.stop_time = val; break;
-			case CMD_SET_GO_BACK_POWER: io.stop_time = val; break;
-			case CMD_SET_GO_BACK_TIME: io.stop_time = val; break;
-			case CMD_SET_VEER_POWER_MIN: io.stop_time = val; break;
-			case CMD_SET_VEER_POWER_MAX: io.stop_time = val; break;
-			case CMD_SET_GO_FORWARD_POWER: io.stop_time = val; break;
-			case CMD_SET_SUCK_POWER: io.stop_time = val; break;
-			case CMD_SET_SPIT_POWER: io.stop_time = val; break;
-			case CMD_SET_HOLD_POWER: io.stop_time = val; break;
-			case CMD_SET_SERVO_RAISE: io.stop_time = val; break;
-			case CMD_SET_SERVO_LOWER: io.stop_time = val; break;
-			case CMD_SET_SERVO_MOVE_TIME: io.stop_time = val; break;
+			case CMD_SET_GET_BALL_POWER: io.get_ball_power = val; break;
+			case CMD_SET_GET_BALL_TIME: io.get_ball_time = val; break;
+			case CMD_SET_TURN90_POWER: io.turn90_power = val; break;
+			case CMD_SET_TURN90_TIME: io.turn90_time = val; break;
+			case CMD_SET_TURN180_POWER: io.turn180_power = val; break;
+			case CMD_SET_TURN180_TIME: io.turn180_time = val; break;
+			case CMD_SET_GO_BACK_POWER: io.go_back_power = val; break;
+			case CMD_SET_GO_BACK_TIME: io.go_back_time = val; break;
+			case CMD_SET_VEER_POWER_MIN: io.veer_power_min = val; break;
+			case CMD_SET_VEER_POWER_MAX: io.veer_power_max = val; break;
+			case CMD_SET_GO_FORWARD_POWER: io.go_forward_power = val; break;
+			case CMD_SET_SUCK_POWER: io.suck_power = val; break;
+			case CMD_SET_SPIT_POWER: io.spit_power = val; break;
+			case CMD_SET_HOLD_POWER: io.hold_power = val; break;
+			case CMD_SET_SERVO_RAISE: io.servo_raise = val; break;
+			case CMD_SET_SERVO_LOWER: io.servo_lower = val; break;
+			case CMD_SET_SERVO_MOVE_TIME: io.servo_move_time = val; break;
 		}
 		store_config(&io);
 	}
