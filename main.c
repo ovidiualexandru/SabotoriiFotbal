@@ -8,7 +8,25 @@
 #include "sensors.h"
 #include "config.h"
 
-IO_Data io = {22};
+IO_Data io = {\
+	100,\
+	240,\
+	100,\
+	180,\
+	40,\
+	180,\
+	80,\
+	180,\
+	40,\
+	130,\
+	170,\
+	180,\
+	240,\
+	250,\
+	180,\
+	200,\
+	0\
+	};
 
 static inline void init()
 {
