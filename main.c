@@ -130,6 +130,8 @@ int main(void)
 	sei();
 	ROLA_POWER = 0;
 	SERVO_POS = 0;
+	raise();
+	lower();
 	wait_nbk(250);
 	if( *((volatile uint8_t*) &prog_mode)){
 		for(;;);
