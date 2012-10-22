@@ -11,6 +11,7 @@
 #include "serial_comm.h"
 
 IO_Data io;
+uint8_t prog_mode = 0;
 
 static inline void init()
 {
@@ -130,6 +131,9 @@ int main(void)
 	ROLA_POWER = 0;
 	SERVO_POS = 0;
 	wait_nbk(250);
+	if( *((volatile uint8_t*) &prog_mode)){
+		for(;;);
+	}
 	//test movement
 	move_test();
 	//start searching

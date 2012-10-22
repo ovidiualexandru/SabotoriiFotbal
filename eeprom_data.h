@@ -4,7 +4,7 @@
 #include "config.h"
 
 
-#define EEPROM_SIGNATURE 0xBADE
+#define EEPROM_SIGNATURE 0xFADE
 IO_Data EEMEM eep_io;
 uint16_t EEMEM signature;
 
@@ -30,7 +30,7 @@ void load_config(IO_Data* config)
 	uint16_t sig = eeprom_read_word(&signature);
 	if( sig != EEPROM_SIGNATURE){ //signature not ok
 		//create default config
-		IO_Data default_config = { 100, 240, 100, 180, 40, 180, 80, 180, 40, 130, 170, 180, 240,	250,	180,	200,	0};
+		IO_Data default_config = { 100, 240, 100, 180, 40, 180, 80, 40, 180, 130, 170, 180, 240,	250,	180,	200,	0, 100};
 		store_config( &default_config);
 	}
 	eeprom_busy_wait();

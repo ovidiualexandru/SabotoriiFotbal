@@ -120,3 +120,18 @@ inline static void go_forward_nbk()
 	set_motor_left(GO_FORWARD_POWER, MOTOR_FORWARD);
 	set_motor_right(GO_FORWARD_POWER, MOTOR_FORWARD);
 }
+
+#define SERVO_MOVE_TIME io.servo_move_time
+#define SERVO_RAISE_POWER io.servo_raise
+inline static void raise()
+{
+	SERVO_POS = SERVO_RAISE_POWER;
+	wait_nbk(SERVO_MOVE_TIME);
+}
+
+#define SERVO_LOWER_POWER io.servo_lower
+inline static void lower()
+{
+	SERVO_POS = SERVO_LOWER_POWER;
+	wait_nbk(SERVO_MOVE_TIME);
+}

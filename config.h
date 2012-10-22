@@ -15,8 +15,8 @@ typedef struct {
 	uint8_t turn180_power;
 	uint8_t turn180_time;
 	
-	uint8_t go_back_time;
 	uint8_t go_back_power;
+	uint8_t go_back_time;
 	
 	uint8_t veer_power_min;
 	uint8_t veer_power_max;
@@ -30,6 +30,7 @@ typedef struct {
 	//Servo config
 	uint8_t servo_raise;
 	uint8_t servo_lower;
+	uint8_t servo_move_time;
 	//Sensors - this should not be in EEPROM but the hell with it
 } IO_Data;
 
