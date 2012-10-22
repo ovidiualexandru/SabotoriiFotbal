@@ -1,6 +1,6 @@
 #pragma once
 
-#define read_dig(sharp) PINA & _BV(sharp)
+#define read_dig(sharp) ((PINA & _BV(sharp)) ? (1) : (0))
 
 static inline uint8_t read_adc(uint8_t sensor)
 {
@@ -19,5 +19,5 @@ static inline uint8_t read_adc(uint8_t sensor)
 static inline uint8_t read_teren()
 {
 	uint8_t teren = PIND & _BV(PD3);
-	return teren;
+	return teren ? 1 : 0;
 }

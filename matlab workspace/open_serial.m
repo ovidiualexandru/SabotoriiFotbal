@@ -1,2 +1,2 @@
-s = serial('COM15', 'BaudRate', 9600, 'FlowControl', 'none','Timeout',0.1);
+s = serial('COM15', 'BaudRate', 38400, 'FlowControl', 'none','Timeout',0.1);
 fopen(s);

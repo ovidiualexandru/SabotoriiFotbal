@@ -10,7 +10,7 @@
 #define USART0_DDR DDRD
 #define USART0_TX_BIT PD1
 #define USART0_RX_BIT PD0
-#define USART_BAUDRATE 9600
+#define USART_BAUDRATE 38400
 #define BAUD_PRESCALE (((F_CPU / (USART_BAUDRATE * 16UL))) - 1)
 
 extern uint8_t prog_mode;
@@ -27,44 +27,53 @@ extern IO_Data io;
 #define CMD_SUCK 0x08
 #define CMD_SPIT 0x09
 #define CMD_HOLD 0x0A
+#define CMD_GET_BALL 0x0B
+#define CMD_GO_FORWARD 0x0C
+#define CMD_STOP 0x0D
 
-#define CMD_READ_STOP_TIME 0x0B
-#define CMD_READ_GET_BALL_POWER 0x0C
-#define CMD_READ_GET_BALL_TIME 0x0D
-#define CMD_READ_TURN90_POWER 0x0E
-#define CMD_READ_TURN90_TIME 0x0F
-#define CMD_READ_TURN180_POWER 0x10
-#define CMD_READ_TURN180_TIME 0x11
-#define CMD_READ_GO_BACK_POWER 0x12
-#define CMD_READ_GO_BACK_TIME 0x13
-#define CMD_READ_VEER_POWER_MIN 0x14
-#define CMD_READ_VEER_POWER_MAX 0x15
-#define CMD_READ_GO_FORWARD_POWER 0x16
-#define CMD_READ_SUCK_POWER 0x17
-#define CMD_READ_SPIT_POWER 0x18
-#define CMD_READ_HOLD_POWER 0x19
-#define CMD_READ_SERVO_RAISE 0x1A
-#define CMD_READ_SERVO_LOWER 0x1B
-#define CMD_READ_SERVO_MOVE_TIME 0x1C
+#define CMD_READ_STOP_TIME 0x10
+#define CMD_READ_GET_BALL_POWER 0x11
+#define CMD_READ_GET_BALL_TIME 0x12
+#define CMD_READ_TURN90_POWER 0x13
+#define CMD_READ_TURN90_TIME 0x14
+#define CMD_READ_TURN180_POWER 0x15
+#define CMD_READ_TURN180_TIME 0x16
+#define CMD_READ_GO_BACK_POWER 0x17
+#define CMD_READ_GO_BACK_TIME 0x18
+#define CMD_READ_VEER_POWER_MIN 0x19
+#define CMD_READ_VEER_POWER_MAX 0x1A
+#define CMD_READ_GO_FORWARD_POWER 0x1B
+#define CMD_READ_SUCK_POWER 0x1C
+#define CMD_READ_SPIT_POWER 0x1D
+#define CMD_READ_HOLD_POWER 0x1E
+#define CMD_READ_SERVO_RAISE 0x1F
+#define CMD_READ_SERVO_LOWER 0x20
+#define CMD_READ_SERVO_MOVE_TIME 0x21
 
-#define CMD_SET_STOP_TIME 0x1D
-#define CMD_SET_GET_BALL_POWER 0x1E
-#define CMD_SET_GET_BALL_TIME 0x1F
-#define CMD_SET_TURN90_POWER 0x20
-#define CMD_SET_TURN90_TIME 0x21
-#define CMD_SET_TURN180_POWER 0x22
-#define CMD_SET_TURN180_TIME 0x23
-#define CMD_SET_GO_BACK_POWER 0x24
-#define CMD_SET_GO_BACK_TIME 0x25
-#define CMD_SET_VEER_POWER_MIN 0x26
-#define CMD_SET_VEER_POWER_MAX 0x27
-#define CMD_SET_GO_FORWARD_POWER 0x28
-#define CMD_SET_SUCK_POWER 0x29
-#define CMD_SET_SPIT_POWER 0x2A
-#define CMD_SET_HOLD_POWER 0x2B
-#define CMD_SET_SERVO_RAISE 0x2C
-#define CMD_SET_SERVO_LOWER 0x2D
-#define CMD_SET_SERVO_MOVE_TIME 0x2E
+#define CMD_READ_SHARP_STANGA 0x22
+#define CMD_READ_SHARP_DREAPTA 0x23
+#define CMD_READ_SHARP_JOS 0x24
+#define CMD_READ_SHARP_SUS 0x25
+#define CMD_READ_SENZ_TEREN 0x26
+
+#define CMD_SET_STOP_TIME 0x30
+#define CMD_SET_GET_BALL_POWER 0x31
+#define CMD_SET_GET_BALL_TIME 0x32
+#define CMD_SET_TURN90_POWER 0x33
+#define CMD_SET_TURN90_TIME 0x34
+#define CMD_SET_TURN180_POWER 0x35
+#define CMD_SET_TURN180_TIME 0x36
+#define CMD_SET_GO_BACK_POWER 0x37
+#define CMD_SET_GO_BACK_TIME 0x38
+#define CMD_SET_VEER_POWER_MIN 0x39
+#define CMD_SET_VEER_POWER_MAX 0x3A
+#define CMD_SET_GO_FORWARD_POWER 0x3B
+#define CMD_SET_SUCK_POWER 0x3C
+#define CMD_SET_SPIT_POWER 0x3D
+#define CMD_SET_HOLD_POWER 0x3E
+#define CMD_SET_SERVO_RAISE 0x3F
+#define CMD_SET_SERVO_LOWER 0x40
+#define CMD_SET_SERVO_MOVE_TIME 0x41
 
 
 
@@ -96,7 +105,8 @@ static uint8_t USART0_Receive()
 ISR(USART0_RX_vect)
 {
 	uint8_t cmd = UDR0;
-	if( (cmd >= CMD_PROGRAMMING) && (cmd <= CMD_READ_SERVO_MOVE_TIME)){
+	uint8_t sharp1;
+	if( (cmd >= CMD_PROGRAMMING) && (cmd <= CMD_READ_SENZ_TEREN)){
 		switch(cmd){
 			case CMD_PROGRAMMING: prog_mode = 1;break;
 			case CMD_TURN_LEFT: turn_left(); break;
@@ -109,6 +119,10 @@ ISR(USART0_RX_vect)
 			case CMD_SUCK: rola_suck();break;
 			case CMD_SPIT: rola_spit();break;
 			case CMD_HOLD: rola_hold();break;
+			case CMD_GET_BALL: get_ball(); break;
+			case CMD_GO_FORWARD: go_forward_nbk(); break;
+			case CMD_STOP: stop(); break;
+			
 			case CMD_READ_STOP_TIME: USART0_Transmit(io.stop_time);break;
 			case CMD_READ_GET_BALL_POWER: USART0_Transmit(io.get_ball_power);break;
 			case CMD_READ_GET_BALL_TIME: USART0_Transmit(io.get_ball_time);break;
@@ -127,6 +141,27 @@ ISR(USART0_RX_vect)
 			case CMD_READ_SERVO_RAISE: USART0_Transmit(io.servo_raise);break;
 			case CMD_READ_SERVO_LOWER: USART0_Transmit(io.servo_lower);break;
 			case CMD_READ_SERVO_MOVE_TIME: USART0_Transmit(io.servo_move_time);break;
+			
+			case CMD_READ_SHARP_STANGA:
+				sharp1 = !(read_dig(SHARP_STANGA));
+				USART0_Transmit(sharp1); 
+				break;
+			case CMD_READ_SHARP_DREAPTA:
+				sharp1 = !(read_dig(SHARP_DREAPTA));
+				USART0_Transmit(sharp1); 
+				break;
+			case CMD_READ_SHARP_JOS:
+				sharp1 = read_adc(SHARP_JOS);
+				USART0_Transmit(sharp1); 
+				break;
+			case CMD_READ_SHARP_SUS:
+				sharp1 = read_adc(SHARP_SUS);
+				USART0_Transmit(sharp1); 
+				break;
+			case CMD_READ_SENZ_TEREN:
+				sharp1 = read_teren();
+				USART0_Transmit(sharp1); 
+				break;
 		}
 	}
 	else{

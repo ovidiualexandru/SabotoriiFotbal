@@ -21,6 +21,12 @@ switch cmd_string
         cmd_code = 9;
     case 'hold'
         cmd_code = 10;
+    case 'get ball'
+        cmd_code = 11;
+    case 'go forward'
+        cmd_code = 12;
+    case 'stop'
+        cmd_code = 13;
 end
 fwrite(s, uint8(cmd_code));
 end
