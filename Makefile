@@ -1,4 +1,4 @@
-DEVICE=atmega324pa
+DEVICE=atmega324p
 DUDEDEV=-c stk500 -P COM16 -F
 
 OBJECTS= main.o
