@@ -22,7 +22,7 @@
 #define M2IN1 PC7
 
 #define D2PWM1 OCR2B
-#define D2PWM2 OCR2A
+#define D2PWM2 OCR1A
 #define D1PWM1 OCR0A
 #define D1PWM2 OCR0B
 

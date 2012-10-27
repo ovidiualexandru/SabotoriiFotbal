@@ -3,41 +3,41 @@ cmd_code = 0;
 %fread(s); % empty the buffer
 switch var_string
     case 'stop time'
-        cmd_code = 48;
+        cmd_code = 80;
     case 'get ball power'
-        cmd_code = 49;
+        cmd_code = 81;
     case 'get ball time'
-        cmd_code = 50;
+        cmd_code = 82;
     case 'turn 90 power'
-        cmd_code = 51;
+        cmd_code = 83;
     case 'turn 90 time'
-        cmd_code = 52;
+        cmd_code = 84;
     case 'turn 180 power'
-        cmd_code = 53;
+        cmd_code = 85;
     case 'turn 180 time'
-        cmd_code = 54;
+        cmd_code = 86;
     case 'go back power'
-        cmd_code = 55;
+        cmd_code = 87;
     case 'go back time'
-        cmd_code = 56;
+        cmd_code = 88;
     case 'veer power min'
-        cmd_code = 57;
+        cmd_code = 89;
     case 'veer power max'
-        cmd_code = 58;
+        cmd_code = 90;
     case 'go forward power'
-        cmd_code = 59;
+        cmd_code = 91;
     case 'suck power'
-        cmd_code = 60;
+        cmd_code = 92;
     case 'spit power'
-        cmd_code = 61;
+        cmd_code = 93;
     case 'hold power'
-        cmd_code = 62;
+        cmd_code = 94;
     case 'servo raise'
-        cmd_code = 63;
+        cmd_code = 95;
     case 'servo lower'
-        cmd_code = 64;
+        cmd_code = 96;
     case 'servo move time'
-        cmd_code = 65;
+        cmd_code = 97;
 end
 fwrite(s, uint8(cmd_code));
 fwrite(s, uint8(val));

@@ -17,11 +17,11 @@ static inline void init()
 {
 	//init GPIO leduri
 	DDRC |= _BV(PC0) | _BV(PC1) | _BV(PC2) | _BV(PC3);
-	DDRD |= _BV(PD4);
+	DDRD |= _BV(PD4) | _BV(PD5);
 	//init GPIO drivere
 	DDRC |= _BV(PC6) | _BV(PC7);
 	DDRB |= _BV(PB0) | _BV(PB1) | _BV(PB3) | _BV(PB4);
-	DDRD |= _BV(PD6) | _BV(PD7);
+	DDRD |= _BV(PD6) /* | _BV(PD7) */;
 	//init timere motoare
 	//Clear all settings, Paranoid Parrot © style
 	ICR1 = 0;
@@ -52,10 +52,11 @@ static inline void init()
 	TCCR2A |= /*_BV(WGM21) |*/ _BV(WGM20); // Select Mode, Phase correct
 	TCCR2A |= _BV(COM2A1) /*| _BV(COM2A0)*/ | _BV(COM2B1) /*| _BV(COM2B0)*/; //Select COM mode, non-inverting on OC2A  and OC0B for phase correct pwm ?
 	//init timer1
-	ICR1 = 0xFFFF;
-	TCCR1B |= _BV(WGM13); // Phase and freq correct, top ICR1
+	ICR1 = 390;
+	TCCR1A |= _BV(WGM11) /* | _BV(WGM10) */;
+	TCCR1B |= _BV(WGM13) | _BV(WGM12); // Fast PWM, TOP ICR1, top ICR1
 	TCCR1B |= _BV(CS12) /*| _BV(CS11)*/ | _BV(CS10); // prescaler 1024
-	// TIMSK1 |= _BV(TOIE1); // enable interrupt
+	TCCR1A |= _BV(COM1A1); //output OC1A, non-inverting
 	
 	//init ADC
 	ADMUX |=  _BV(ADLAR);
