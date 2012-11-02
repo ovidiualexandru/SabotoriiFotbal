@@ -27,6 +27,16 @@ switch cmd_string
         cmd_code = 12;
     case 'stop'
         cmd_code = 13;
+	case 'stop rola'
+		cmd_code = 14;
+	case 'step left'
+		cmd_code = 15;
+	case 'step right'
+		cmd_code = 16;
+	case 'center ball'
+		cmd_code = 17;
+	case 'center light'
+		cmd_code = 18;
 end
 fwrite(s, uint8(cmd_code));
 end

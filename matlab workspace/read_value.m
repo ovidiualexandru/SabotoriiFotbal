@@ -38,6 +38,10 @@ switch var_string
         cmd_code = 46;
     case 'servo move time'
         cmd_code = 47;
+	case 'turn 10 power'
+		cmd_code = 48;
+	case 'turn 10 time'
+		cmd_code = 49;
         
     case 'sharp stanga'
         cmd_code = 60;
