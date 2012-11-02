@@ -22,6 +22,9 @@ typedef struct {
 	uint8_t veer_power_max;
 	
 	uint8_t go_forward_power;
+	
+	uint8_t turn10_power;
+	uint8_t turn10_time;
 	//Rola config
 	uint8_t suck_power;
 	uint8_t spit_power;

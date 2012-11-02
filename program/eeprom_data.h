@@ -4,7 +4,7 @@
 #include "config.h"
 
 
-#define EEPROM_SIGNATURE 0xBABE
+#define EEPROM_SIGNATURE 0xB00B
 IO_Data EEMEM eep_io;
 uint16_t EEMEM signature;
 
@@ -43,6 +43,8 @@ void load_config(IO_Data* config)
 					.veer_power_min = 130,
 					.veer_power_max = 170,
 					.go_forward_power = 180,
+					.turn10_power = 100,
+					.turn10_time = 10,
 					.suck_power = 240,
 					.spit_power = 250,
 					.hold_power = 180,

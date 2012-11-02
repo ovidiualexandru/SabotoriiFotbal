@@ -58,9 +58,29 @@ inline static void get_ball()
 	stop();
 }
 
+#define TURN10_POWER io.turn10_power
+#define TURN10_TIME io.turn10_time
+inline static void turn10_left()
+{
+	stop();
+	set_motor_left(TURN10_POWER, MOTOR_BACKWARD);
+	set_motor_right(TURN10_POWER, MOTOR_FORWARD);
+	wait_nbk(TURN10_TIME);
+	stop();
+}
+
+inline static void turn10_right()
+{
+	stop();
+	set_motor_left(TURN10_POWER, MOTOR_FORWARD);
+	set_motor_right(TURN10_POWER, MOTOR_BACKWARD);
+	wait_nbk(TURN10_TIME);
+	stop();
+}
+
 #define TURN90_POWER io.turn90_power
 #define TURN90_TIME io.turn90_time
-inline static void turn_left()
+inline static void turn90_left()
 {
 	stop();
 	set_motor_left(TURN90_POWER, MOTOR_BACKWARD);
@@ -69,7 +89,7 @@ inline static void turn_left()
 	stop();
 }
 
-inline static void turn_right()
+inline static void turn90_right()
 {
 	stop();
 	set_motor_left(TURN90_POWER, MOTOR_FORWARD);
@@ -134,4 +154,14 @@ inline static void lower()
 {
 	SERVO_POS = SERVO_LOWER_POWER;
 	wait_nbk(SERVO_MOVE_TIME);
+}
+
+
+inline static void center_ball()
+{
+	
+}
+
+inline static void center_light()
+{
 }

@@ -75,9 +75,9 @@ ISR(TIMER1_OVF_vect)
 static inline void move_test()
 {
 	set_led_teren();
-	turn_left();
+	turn90_left();
 	_delay_ms(500);
-	turn_right();
+	turn90_right();
 	_delay_ms(500);
 	turn_around();
 	_delay_ms(500);
@@ -109,12 +109,12 @@ static inline void test_loop()
 	*/
 	if( sharp1 ){
 		go_back();
-		turn_right();
+		turn90_right();
 		veer_right_nbk();
 	}
 	if(sharp2){
 		go_back();
-		turn_left();
+		turn90_left();
 		veer_left_nbk();
 	}
 	if(/*sharp3 > 30 &&*/ sharp4 > 100){

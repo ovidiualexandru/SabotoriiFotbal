@@ -17,8 +17,8 @@ extern uint8_t prog_mode;
 extern IO_Data io;
 
 #define CMD_PROGRAMMING 	0
-#define CMD_TURN_LEFT 		1
-#define CMD_TURN_RIGHT 	2
+#define CMD_TURN90_LEFT 	1
+#define CMD_TURN90_RIGHT 	2
 #define CMD_TURN_AROUND 	3
 #define CMD_VEER_LEFT 		4
 #define CMD_VEER_RIGHT 	5
@@ -30,6 +30,11 @@ extern IO_Data io;
 #define CMD_GET_BALL 		11
 #define CMD_GO_FORWARD 	12
 #define CMD_STOP 			13
+#define CMD_STOP_ROLA		14
+#define CMD_TURN10_LEFT	15
+#define CMD_TURN10_RIGHT	16
+#define CMD_CENTER_BALL	17
+#define CMD_CENTER_LIGHT	18
 
 #define CMD_READ_STOP_TIME 			30
 #define CMD_READ_GET_BALL_POWER 		31
@@ -49,6 +54,8 @@ extern IO_Data io;
 #define CMD_READ_SERVO_RAISE 		45
 #define CMD_READ_SERVO_LOWER 		46
 #define CMD_READ_SERVO_MOVE_TIME 	47
+#define CMD_READ_TURN10_POWER		48
+#define CMD_READ_TURN10_TIME		49
 
 #define CMD_READ_SHARP_STANGA 	60
 #define CMD_READ_SHARP_DREAPTA	61
@@ -74,6 +81,8 @@ extern IO_Data io;
 #define CMD_SET_SERVO_RAISE 	95
 #define CMD_SET_SERVO_LOWER 	96
 #define CMD_SET_SERVO_MOVE_TIME	97
+#define CMD_SET_TURN10_POWER	98
+#define CMD_SET_TURN10_TIME		99
 
 
 
@@ -106,11 +115,11 @@ ISR(USART0_RX_vect)
 {
 	uint8_t cmd = UDR0;
 	uint8_t sharp1;
-	if( (cmd >= CMD_PROGRAMMING) && (cmd <= CMD_READ_SENZ_TEREN)){
+	if( (cmd >= CMD_PROGRAMMING) && (cmd < CMD_SET_STOP_TIME)){
 		switch(cmd){
 			case CMD_PROGRAMMING: prog_mode = 1;break;
-			case CMD_TURN_LEFT: turn_left(); break;
-			case CMD_TURN_RIGHT: turn_right(); break;
+			case CMD_TURN90_LEFT: turn90_left(); break;
+			case CMD_TURN90_RIGHT: turn90_right(); break;
 			case CMD_TURN_AROUND: turn_around();break;
 			case CMD_VEER_LEFT: veer_left_nbk();break;
 			case CMD_VEER_RIGHT: veer_right_nbk();break;
@@ -122,6 +131,11 @@ ISR(USART0_RX_vect)
 			case CMD_GET_BALL: get_ball(); break;
 			case CMD_GO_FORWARD: go_forward_nbk(); break;
 			case CMD_STOP: stop(); break;
+			case CMD_STOP_ROLA: rola_stop();break;
+			case CMD_TURN10_LEFT: turn10_left();break;
+			case CMD_TURN10_RIGHT: turn10_left();break;
+			case CMD_CENTER_BALL: center_ball(); break;
+			case CMD_CENTER_LIGHT: center_light(); break;
 			
 			case CMD_READ_STOP_TIME: USART0_Transmit(io.stop_time);break;
 			case CMD_READ_GET_BALL_POWER: USART0_Transmit(io.get_ball_power);break;
@@ -141,6 +155,8 @@ ISR(USART0_RX_vect)
 			case CMD_READ_SERVO_RAISE: USART0_Transmit(io.servo_raise);break;
 			case CMD_READ_SERVO_LOWER: USART0_Transmit(io.servo_lower);break;
 			case CMD_READ_SERVO_MOVE_TIME: USART0_Transmit(io.servo_move_time);break;
+			case CMD_READ_TURN10_POWER: USART0_Transmit(io.turn10_power);break;
+			case CMD_READ_TURN10_TIME: USART0_Transmit(io.turn10_time);break;
 			
 			case CMD_READ_SHARP_STANGA:
 				sharp1 = !(read_dig(SHARP_STANGA));
@@ -151,11 +167,11 @@ ISR(USART0_RX_vect)
 				USART0_Transmit(sharp1); 
 				break;
 			case CMD_READ_SHARP_JOS:
-				sharp1 = read_adc(SHARP_JOS);
+				sharp1 = read_adc_filtered(SHARP_JOS);
 				USART0_Transmit(sharp1); 
 				break;
 			case CMD_READ_SHARP_SUS:
-				sharp1 = read_adc(SHARP_SUS);
+				sharp1 = read_adc_filtered(SHARP_SUS);
 				USART0_Transmit(sharp1); 
 				break;
 			case CMD_READ_SENZ_TEREN:
@@ -185,6 +201,8 @@ ISR(USART0_RX_vect)
 			case CMD_SET_SERVO_RAISE: io.servo_raise = val; break;
 			case CMD_SET_SERVO_LOWER: io.servo_lower = val; break;
 			case CMD_SET_SERVO_MOVE_TIME: io.servo_move_time = val; break;
+			case CMD_SET_TURN10_POWER: io.turn10_power = val; break;
+			case CMD_SET_TURN10_TIME: io.turn10_time = val; break;
 		}
 		store_config(&io);
 	}
