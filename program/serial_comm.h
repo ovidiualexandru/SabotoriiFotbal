@@ -20,21 +20,22 @@ extern IO_Data io;
 #define CMD_TURN90_LEFT 	1
 #define CMD_TURN90_RIGHT 	2
 #define CMD_TURN_AROUND 	3
-#define CMD_VEER_LEFT 		4
-#define CMD_VEER_RIGHT 	5
-#define CMD_RAISE 			6
-#define CMD_LOWER 			7
-#define CMD_SUCK 			8
-#define CMD_SPIT 			9
-#define CMD_HOLD 			10
-#define CMD_GET_BALL 		11
-#define CMD_GO_FORWARD 	12
-#define CMD_STOP 			13
-#define CMD_STOP_ROLA		14
-#define CMD_TURN10_LEFT	15
-#define CMD_TURN10_RIGHT	16
-#define CMD_CENTER_BALL	17
-#define CMD_CENTER_LIGHT	18
+#define CMD_GO_BACK		4
+#define CMD_VEER_LEFT 		5
+#define CMD_VEER_RIGHT 	6
+#define CMD_RAISE 			7
+#define CMD_LOWER 			8
+#define CMD_SUCK 			9
+#define CMD_SPIT 			10
+#define CMD_HOLD 			11
+#define CMD_GET_BALL 		12
+#define CMD_GO_FORWARD 	13
+#define CMD_STOP 			14
+#define CMD_STOP_ROLA		15
+#define CMD_TURN10_LEFT	16
+#define CMD_TURN10_RIGHT	17
+#define CMD_CENTER_BALL	18
+#define CMD_CENTER_LIGHT	19
 
 #define CMD_READ_STOP_TIME 			30
 #define CMD_READ_GET_BALL_POWER 		31
@@ -121,6 +122,7 @@ ISR(USART0_RX_vect)
 			case CMD_TURN90_LEFT: turn90_left(); break;
 			case CMD_TURN90_RIGHT: turn90_right(); break;
 			case CMD_TURN_AROUND: turn_around();break;
+			case CMD_GO_BACK: go_back();break;
 			case CMD_VEER_LEFT: veer_left_nbk();break;
 			case CMD_VEER_RIGHT: veer_right_nbk();break;
 			case CMD_RAISE: raise(); break;
@@ -133,7 +135,7 @@ ISR(USART0_RX_vect)
 			case CMD_STOP: stop(); break;
 			case CMD_STOP_ROLA: rola_stop();break;
 			case CMD_TURN10_LEFT: turn10_left();break;
-			case CMD_TURN10_RIGHT: turn10_left();break;
+			case CMD_TURN10_RIGHT: turn10_right();break;
 			case CMD_CENTER_BALL: center_ball(); break;
 			case CMD_CENTER_LIGHT: center_light(); break;
 			

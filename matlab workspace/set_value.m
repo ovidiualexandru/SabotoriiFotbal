@@ -39,9 +39,9 @@ switch var_string
     case 'servo move time'
         cmd_code = 97;
 	case 'turn 10 power'
-		cmd_code 98;
+		cmd_code = 98;
 	case 'turn 10 time'
-		cmd_code 99;
+		cmd_code = 99;
 end
 fwrite(s, uint8(cmd_code));
 fwrite(s, uint8(val));

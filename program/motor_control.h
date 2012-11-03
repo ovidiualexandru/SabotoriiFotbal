@@ -46,18 +46,6 @@ static inline void stop()
 	wait_nbk(STOP_TIME);
 }
 
-#define GET_BALL_POWER io.get_ball_power
-#define GET_BALL_TIME io.get_ball_time
-inline static void get_ball()
-{
-	set_motor_left(GET_BALL_POWER, MOTOR_FORWARD);
-	set_motor_right(GET_BALL_POWER, MOTOR_FORWARD);
-	rola_suck();
-	wait_nbk(GET_BALL_TIME);
-	rola_hold();
-	stop();
-}
-
 #define TURN10_POWER io.turn10_power
 #define TURN10_TIME io.turn10_time
 inline static void turn10_left()
@@ -156,6 +144,20 @@ inline static void lower()
 	wait_nbk(SERVO_MOVE_TIME);
 }
 
+
+#define GET_BALL_POWER io.get_ball_power
+#define GET_BALL_TIME io.get_ball_time
+inline static void get_ball()
+{
+	raise();
+	set_motor_left(GET_BALL_POWER, MOTOR_FORWARD);
+	set_motor_right(GET_BALL_POWER, MOTOR_FORWARD);
+	rola_suck();
+	wait_nbk(GET_BALL_TIME);
+	rola_hold();
+	stop();
+	lower();
+}
 
 inline static void center_ball()
 {
