@@ -1,5 +1,11 @@
+OBJECTDIR=obj/
+SourceDir=src/
+
+CC=avr-gcc
+COMPILE = $(CC) $(CFLAGS) -mmcu=$(DEVICE)
+
 ifndef DUDEDEV
-DUDEDEV = -c avr109 -P COM5 -b 115200
+DUDEDEV = -c avrispmkII -P usb
 endif
 
 ifndef DUDEARGS
@@ -16,38 +22,37 @@ ifndef LDFLAGS
 LDFLAGS = 
 endif
 
-COMPILE = avr-gcc $(CFLAGS) -mmcu=$(DEVICE)
-
-ifndef OBJECTS
-OBJECTS = main.o
+ifndef SOURCES
+SOURCES = main.c
 endif
 
-.c.o:
-	$(COMPILE) -c $< -o $@ -Wa,-ahl=$<.asmlist,-L
-
-.S.o:
-	$(COMPILE) -x assembler-with-cpp -c $< -o $@
-
-.c.s:
-	$(COMPILE) -S $< -o $@
+OBJECTS=$(SOURCES:.c=.o)
+COBJECTS=$(addprefix $(OBJECTDIR),$(OBJECTS))
+EXECUTABLE= main.elf
+FLASHFILE= flash.hex
+CEXECUTABLE=$(addprefix $(OBJECTDIR),$(EXECUTABLE))
 
 ifndef MAKE_LIB
 
-all:	flash.hex
+all: $(FLASHFILE)
 
-main.elf:	$(OBJECTS)
-	$(COMPILE) -o main.elf $(OBJECTS) $(LDFLAGS)
+$(OBJECTDIR)%.o: $(SourceDir)%.c
+	$(COMPILE) -c $< -o $@ -Wa,-ahl=$(notdir $<).asmlist,-L
+	mv *.i *.s *.asmlist -t $(OBJECTDIR)
 
-flash.hex:	main.elf
-	rm -f flash.hex
-	avr-objcopy -j .text -j .data -O ihex main.elf flash.hex
-	avr-size main.elf
+$(CEXECUTABLE): $(COBJECTS)
+	$(COMPILE) -o $(CEXECUTABLE) $(COBJECTS) $(LDFLAGS)	
 
+$(FLASHFILE):	$(CEXECUTABLE)
+	rm -f $(FLASHFILE)
+	avr-objcopy -j .text -j .data -O ihex $(CEXECUTABLE) $(FLASHFILE)
+	avr-size $(CEXECUTABLE)
+	
 flash:	all
 	$(AVRDUDE) -V -U flash:w:flash.hex:i
 
 flashv:	all
-	$(AVRDUDE) -U flash:w:flash.hex:i
+	$(AVRDUDE) -U flash:w:$(FLASHFILE):i
 
 rdflash:
 	$(AVRDUDE) -U flash:r:flashdump.bin:r
@@ -107,19 +112,27 @@ cpp:
 	$(COMPILE) -E main.c
 
 clean:
-	rm -f flash.hex eeprom.hex flashdump.hex eepdump.hex flashdump.bin eepdump.bin main.elf $(OBJECTS) *.asmlist *.i *.s
+	cd $(OBJECTDIR); rm -f *
+	rm -f $(FLASHFILE) eeprom.hex flashdump.hex eepdump.hex flashdump.bin eepdump.bin
 
 else
 #MAKE_LIB
 
 all: $(MAKE_LIB)
 
-$(MAKE_LIB):	$(OBJECTS)
-	avr-ar rcs $(MAKE_LIB) $(OBJECTS)
+$(OBJECTDIR)%.o: $(SourceDir)%.c
+	$(COMPILE) -c $< -o $@ -Wa,-ahl=$(notdir $<).asmlist,-L
+	mv *.i *.s *.asmlist -t $(OBJECTDIR)
+
+$(MAKE_LIB): $(COBJECTS)
+	avr-ar rcs $(MAKE_LIB) $(COBJECTS)
 
 clean:
-	rm -f $(MAKE_LIB) $(OBJECTS) *.asmlist *.i *.s
+	cd $(OBJECTDIR); rm -f *
+	rm -f $(MAKE_LIB) eeprom.hex flashdump.hex eepdump.hex flashdump.bin eepdump.bin
 
 endif
 
 .PHONY: flash flashv rdflash eep rdeep fuse rdfuse lock erase reset clean disasm cpp
+
+
