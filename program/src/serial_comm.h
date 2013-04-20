@@ -63,6 +63,8 @@ extern IO_Data io;
 #define CMD_READ_SHARP_JOS		62
 #define CMD_READ_SHARP_SUS		63
 #define CMD_READ_SENZ_TEREN 	64
+#define CMD_READ_SLUM1			65
+#define CMD_READ_SLUM2			66
 
 #define CMD_SET_STOP_TIME 		80
 #define CMD_SET_GET_BALL_POWER 	81
@@ -180,6 +182,15 @@ ISR(USART0_RX_vect)
 				sharp1 = read_teren();
 				USART0_Transmit(sharp1); 
 				break;
+			case CMD_READ_SLUM1:
+				sharp1 = read_adc(SLUM1);
+				USART0_Transmit(sharp1); 
+				break;
+			case CMD_READ_SLUM2:
+				sharp1 = read_adc(SLUM2);
+				USART0_Transmit(sharp1); 
+				break;
+			default: break;
 		}
 	}
 	else{

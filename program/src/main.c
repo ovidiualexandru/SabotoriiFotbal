@@ -11,7 +11,7 @@
 #include "serial_comm.h"
 
 IO_Data io;
-uint8_t prog_mode = 0;
+uint8_t prog_mode = 1;
 
 static inline void init()
 {
