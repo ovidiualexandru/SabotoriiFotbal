@@ -1,5 +1,5 @@
 DEVICE=atmega324p
-DUDEDEV=-c stk500 -P COM22 -b 115200
+DUDEDEV=-c stk500 -P COM22 -b 57600
 
 SOURCES= main.c
 CFLAGS=-Wall -Os -I. -L. -I. -DF_CPU=20000000 -save-temps
@@ -14,14 +14,17 @@ HFUSE=$(subst _,,0b_1_1_0_1__0_0_0_1)
 #                   | | +------------- SPIEN (allow serial programming)
 #                   | +--------------- JTAGEN (disable JTAG, save 4 pins)
 #                   +----------------- OCDEN (disable on-chip debug)
+#0xD1
 
-LFUSE=$(subst _,,0b_0_0_1_1__1_1_1_1)
+LFUSE=$(subst _,,0b_1_1_1_1__1_1_1_1)
 #                   ^ ^ \ /  \--+--/
 #                   | |  |      +----- CKSEL 3..0 (external crystal, full-swing)
 #                   | |  +------------ SUT 1..0 (long startup time)
 #                   | +--------------- BODEN
 #                   +----------------- BODLEVEL
+#0xFF
 
+EFUSE=0xFE
 LOCKB=$(subst _,,0b_0_0_0_0__0_1_0_0)
 #                   ^ ^ ^ ^  ^ ^ ^ ^-- LB1 (no program write
 #                   | | | |  | | +---- LB2  or read allowed)
