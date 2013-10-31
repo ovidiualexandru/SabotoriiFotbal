@@ -1,7 +1,7 @@
 DEVICE=atmega324p
-DUDEDEV=-c stk500 -P COM22 -b 57600
+DUDEDEV=-c avrispmkII -P usb -b 57600
 
-SOURCES= main.c
+SOURCES= main.c leds.c
 CFLAGS=-Wall -Os -I. -L. -I. -DF_CPU=20000000 -save-temps
 LDFLAGS=-lm
 
