@@ -36,8 +36,10 @@ int main()
 		set_led_teren();
 		uint8_t sus = ana_sharp(ANA_SHARP_SUS);
 		uint8_t jos = ana_sharp(ANA_SHARP_JOS);
-		uint8_t stanga = ana_sharp(ANA_FOTO_STANGA);
-		uint8_t dreapta = ana_sharp(ANA_FOTO_DREAPTA);
+		// uint8_t stanga = ana_sharp(ANA_FOTO_STANGA);
+		// uint8_t dreapta = ana_sharp(ANA_FOTO_DREAPTA);
+		uint8_t stanga = dig_sharp(DIG_SHARP_STANGA);
+		uint8_t dreapta = dig_sharp(DIG_SHARP_DREAPTA);
 		_delay_ms(500);
 		clear_led_teren();
 		
@@ -48,8 +50,8 @@ int main()
 		
 		if( sus > 100) set_led(LED1);
 		if( jos > 100) set_led(LED2);
-		if( stanga > 150) set_led(LED3);
-		if( dreapta > 150) set_led(LED4);
+		if( stanga ) set_led(LED3);
+		if( dreapta ) set_led(LED4);
 		
 		USART0_Transmit(sus);
 		USART0_Transmit(jos);

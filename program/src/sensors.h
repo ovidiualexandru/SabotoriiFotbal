@@ -12,14 +12,15 @@ Uses: ADC
 Reads digital and analog sensors.
 *****************************************/
 /*
- * Read a digital sharp sensor. Valid arguments: DIG_SHARP_STANGA, DIG_SHARP_STANGA
+ * Read a digital sharp sensor. Valid arguments: DIG_SHARP_STANGA,
+ * DIG_SHARP_DREAPTA.
  */
-#define dig_sharp(sharp) ((DIG_SHARP_PIN & _BV(sharp)) ? 1 : 0)
+#define dig_sharp(sharp) ((DIG_SHARP_PIN & _BV(sharp)) ? 0 : 1)
 
 /*
  * Read the white sensor.
  */
-#define dig_teren() ( (TEREN_PIN & _BV(TEREN_BIT)) ? 1 : 0)
+#define dig_teren() ( (TEREN_PIN & _BV(TEREN_BIT)) ? 0 : 1)
 /****************************************/
 
 /*
