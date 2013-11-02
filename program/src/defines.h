@@ -50,12 +50,16 @@ Mapping for motors
 #define D2PWM1_BIT PD6
 #define D2PWM2_BIT PD5
 #define D2PWM_PORT PORTD
+#define D2PWM_DDR DDRD
 
 //Right motor control
 #define D1PWM1_BIT PB3
 #define D1PWM2_BIT PB4
 #define D1PWM_PORT PORTB
+#define D1PWM_DDR DDRB
 
+#define M1_DDR DDRB
+#define M2_DDR DDRC
 #define M1_PORT PORTB
 #define M2_PORT PORTC
 
@@ -68,19 +72,24 @@ Mapping for motors
 #define ROLA_POWER D1PWM2
 #define ROLA_DIR_PORT PORTB
 #define ROLA_DIR_BIT ROLAIN1
+#define ROLA_DIR_DDR  DDRB
 /****************************************/
 
 /*****************************************
 Mapping for Sharp sensors
 *****************************************/
 //Digital Sharp
-#define SHARP_STANGA SHARP1
-#define SHARP_DREAPTA SHARP2
+#define DIG_SHARP_STANGA SHARP1
+#define DIG_SHARP_DREAPTA SHARP2
 //Analog sharp
-#define SHARP_JOS SHARP3
-#define SHARP_SUS SHARP4
-/****************************************/
+#define ANA_SHARP_JOS SHARP3
+#define ANA_SHARP_SUS SHARP4
+#define ANA_FOTO_STANGA SLUM1
+#define ANA_FOTO_DREAPTA SLUM2
 
+#define DIG_SHARP_PIN PINA
+#define TEREN_PIN PIND
+/****************************************/
 
 /*****************************************
 Mapping for LEDs
