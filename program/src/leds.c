@@ -1,4 +1,5 @@
 #include "leds.h"
+#include <avr/io.h>
 
 void initleds()
 {

@@ -82,8 +82,8 @@ Mapping for Sharp sensors
 #define DIG_SHARP_STANGA SHARP1
 #define DIG_SHARP_DREAPTA SHARP2
 //Analog sharp
-#define ANA_SHARP_JOS SHARP3
-#define ANA_SHARP_SUS SHARP4
+#define ANA_SHARP_SUS SHARP3
+#define ANA_SHARP_JOS SHARP4
 #define ANA_FOTO_STANGA SLUM1
 #define ANA_FOTO_DREAPTA SLUM2
 
@@ -109,5 +109,3 @@ Mapping for LEDs
 #define rola_stop() ROLA_POWER = 0
 #define rola_fleghm() PORTB ^= _BV(ROLA_DIR_BIT)
 #define rola_hold() PORTB &= ~_BV(ROLA_DIR_BIT); ROLA_POWER = HOLD_POWER
-
-

@@ -4,6 +4,7 @@
 #include "leds.h"
 #include "motors.h"
 #include "sensors.h"
+#include "serial_comm.h"
 
 __attribute__((noreturn))
 int main()
@@ -11,6 +12,7 @@ int main()
 	initleds();
 	initadc();
 	initmotors();
+	USART0_Init();
 	
 	set_led(LED1);
 	_delay_ms(1000);
@@ -44,10 +46,19 @@ int main()
 		clear_led(LED3);
 		clear_led(LED4);
 		
-		if( sus > 100)	set_led(LED1);
+		if( sus > 100) set_led(LED1);
 		if( jos > 100) set_led(LED2);
 		if( stanga > 150) set_led(LED3);
 		if( dreapta > 150) set_led(LED4);
+		
+		USART0_Transmit(sus);
+		USART0_Transmit(jos);
+		USART0_Transmit(stanga);
+		USART0_Transmit(dreapta);
+		
+		set_led_teren();
+		USART0_Receive();
+		clear_led_teren();
 		_delay_ms(1000);
 	}
 }

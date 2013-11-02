@@ -32,6 +32,3 @@ void initadc();
  * ANA_FOTO_STANGA, ANA_FOTO_DREAPTA.
  */
 uint8_t ana_sharp(uint8_t sensor);
-
-
-
