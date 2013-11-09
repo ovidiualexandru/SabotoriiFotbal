@@ -1,5 +1,6 @@
 #include <avr/io.h>
 #include <util/delay.h>
+#include <avr/interrupt.h>
 #include "defines.h"
 #include "leds.h"
 #include "motors.h"
@@ -9,12 +10,68 @@
 
 threshold_t sensor_thresholds;
 
+
+ISR(USART0_RX_vect)
+{
+	uint8_t command = UDR0;
+	if(command == '$'){
+		ana_set(ANA_SHARP_JOS);
+		ana_read();
+		uint8_t jos = ana_read();
+		
+		ana_set(ANA_SHARP_SUS);
+		ana_read();
+		uint8_t sus = ana_read();
+		
+		ana_set(ANA_FOTO_STANGA);
+		ana_read();
+		uint8_t lum_stanga = ana_read();
+		
+		ana_set(ANA_FOTO_DREAPTA);
+		ana_read();
+		uint8_t lum_dreapta = ana_read();
+		
+		uint8_t stanga = dig_sharp(DIG_SHARP_STANGA);
+		uint8_t dreapta = dig_sharp(DIG_SHARP_DREAPTA);
+		uint8_t teren = dig_teren();
+		
+		uint8_t threshold_jos = ( jos > sensor_thresholds.jos) ? 1 : 0;
+		uint8_t threshold_sus = ( sus > sensor_thresholds.sus) ? 1 : 0;
+		uint8_t threshold_stg = (lum_stanga > sensor_thresholds.lumina_stanga) \
+			? 1 : 0;
+		uint8_t threshold_drp = (lum_dreapta > sensor_thresholds.lumina_dreapta) \
+			? 1 : 0;
+		
+		uint8_t first_byte = (stanga<<7) | (dreapta<<6) | (teren<<5) \
+			| (threshold_jos<<4) | (threshold_sus<<3) | (threshold_stg<<2) \
+			| (threshold_drp<<1);
+		
+		USART0_Transmit(first_byte);
+		USART0_Transmit(jos);
+		USART0_Transmit(sus);
+		USART0_Transmit(lum_stanga);
+		USART0_Transmit(lum_dreapta);
+	}
+	else if(command == '#'){
+		uint8_t threshold_jos = USART0_Receive();
+		uint8_t threshold_sus = USART0_Receive();
+		uint8_t threshold_left = USART0_Receive();
+		uint8_t threshold_right = USART0_Receive();
+		sensor_thresholds.jos = threshold_jos;
+		sensor_thresholds.sus = threshold_sus;
+		sensor_thresholds.lumina_stanga = threshold_left;
+		sensor_thresholds.lumina_dreapta = threshold_right;
+		store_config(&sensor_thresholds);
+	}
+}
+
 __attribute__((noreturn))
 int main()
 {
 	initleds();
 	initadc();
 	initmotors();
+	set_servo(SERVO_MIN);
 	USART0_Init();
 
 	set_led(LED1);
@@ -44,55 +101,8 @@ int main()
 	clear_led(LED4);
 	clear_led_teren();
 	_delay_ms(1000);
-	
-	for(;;){
-		uint8_t command = USART0_Receive();
-		if(command == '$'){
-			ana_set(ANA_SHARP_JOS);
-			ana_read();
-			uint8_t jos = ana_read();
-			
-			ana_set(ANA_SHARP_SUS);
-			ana_read();
-			uint8_t sus = ana_read();
-			
-			ana_set(ANA_FOTO_STANGA);
-			ana_read();
-			uint8_t lum_stanga = ana_read();
-			
-			ana_set(ANA_FOTO_DREAPTA);
-			ana_read();
-			uint8_t lum_dreapta = ana_read();
-			
-			uint8_t stanga = dig_sharp(DIG_SHARP_STANGA);
-			uint8_t dreapta = dig_sharp(DIG_SHARP_DREAPTA);
-			uint8_t teren = dig_teren();
-			
-			uint8_t threshold_sus = (sus > 100) ? 1 : 0;
-			uint8_t threshold_jos = (jos > 100) ? 1 : 0;
-			uint8_t threshold_stg = (lum_stanga > 100) ? 1 : 0;
-			uint8_t threshold_drp = (lum_dreapta > 100) ? 1 : 0;
-			
-			uint8_t first_byte = (stanga<<7) | (dreapta<<6) | (teren<<5) \
-				| (threshold_sus<<4) | (threshold_jos<<3) | (threshold_stg<<2) \
-				| (threshold_drp<<1);
-			
-			USART0_Transmit(first_byte);
-			USART0_Transmit(jos);
-			USART0_Transmit(sus);
-			USART0_Transmit(lum_stanga);
-			USART0_Transmit(lum_dreapta);
-		}
-		else if(command == '#'){
-			uint8_t threshold_jos = USART0_Receive();
-			uint8_t threshold_sus = USART0_Receive();
-			uint8_t threshold_left = USART0_Receive();
-			uint8_t threshold_right = USART0_Receive();
-			sensor_thresholds.jos = threshold_jos;
-			sensor_thresholds.sus = threshold_sus;
-			sensor_thresholds.lumina_stanga = threshold_left;
-			sensor_thresholds.lumina_dreapta = threshold_right;
-			store_config(&sensor_thresholds);
-		}
-	}
+	set_servo(SERVO_MAX);
+	USART0_Receive_sei();
+	sei();
+	for(;;);
 }
