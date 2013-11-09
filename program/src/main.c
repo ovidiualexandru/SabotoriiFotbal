@@ -83,5 +83,16 @@ int main()
 			USART0_Transmit(lum_stanga);
 			USART0_Transmit(lum_dreapta);
 		}
+		else if(command == '#'){
+			uint8_t threshold_jos = USART0_Receive();
+			uint8_t threshold_sus = USART0_Receive();
+			uint8_t threshold_left = USART0_Receive();
+			uint8_t threshold_right = USART0_Receive();
+			sensor_thresholds.jos = threshold_jos;
+			sensor_thresholds.sus = threshold_sus;
+			sensor_thresholds.lumina_stanga = threshold_left;
+			sensor_thresholds.lumina_dreapta = threshold_right;
+			store_config(&sensor_thresholds);
+		}
 	}
 }
