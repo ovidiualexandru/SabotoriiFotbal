@@ -5,6 +5,9 @@
 #include "motors.h"
 #include "sensors.h"
 #include "serial_comm.h"
+#include "config.h"
+
+threshold_t sensor_thresholds;
 
 __attribute__((noreturn))
 int main()

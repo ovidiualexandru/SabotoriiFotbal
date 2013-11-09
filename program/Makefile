@@ -1,7 +1,7 @@
 DEVICE=atmega324p
 DUDEDEV=-c avrispmkII -P usb -b 57600
 
-SOURCES= main.c leds.c motors.c sensors.c serial_comm.c
+SOURCES= main.c leds.c motors.c sensors.c serial_comm.c config.c
 CFLAGS=-Wall -Os -I. -L. -I. -DF_CPU=20000000 -save-temps
 LDFLAGS=-lm
 
