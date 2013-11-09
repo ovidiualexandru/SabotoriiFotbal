@@ -10,13 +10,17 @@ void initadc()
 	ADCSRA |=  _BV(ADPS1) | _BV(ADPS2) | _BV(ADPS0);
 }
 
-uint8_t ana_sharp(uint8_t sensor)
+void ana_set(uint8_t sensor)
 {
-	uint8_t ret;
 	uint8_t admux = ADMUX;
 	admux &= ~(_BV(MUX4) | _BV(MUX3) | _BV(MUX2) | _BV(MUX1) | _BV(MUX0));
 	admux |= sensor;
 	ADMUX = admux;
+}
+
+uint8_t ana_read()
+{
+	uint8_t ret;
 	ADCSRA |= _BV(ADSC);
 	loop_until_bit_is_set(ADCSRA, ADIF);
 	ret = ADCH;

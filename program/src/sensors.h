@@ -27,9 +27,13 @@ Reads digital and analog sensors.
  * Initialize the ADC.
  */
 void initadc();
-
 /*
- * Read an analog sharp sensor. Valid arguments: ANA_SHARP_JOS, ANA_SHARP_SUS,
+ * Set a channel for analog reading.Valid arguments: ANA_SHARP_JOS, ANA_SHARP_SUS,
  * ANA_FOTO_STANGA, ANA_FOTO_DREAPTA.
  */
-uint8_t ana_sharp(uint8_t sensor);
+void ana_set(uint8_t sensor);
+
+/*
+ * Read the currently selected analog channel
+ */
+uint8_t ana_read();
