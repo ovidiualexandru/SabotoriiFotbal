@@ -19,6 +19,7 @@ uint8_t load_config(threshold_t* config)
 	eeprom_busy_wait();
 	uint16_t sig = eeprom_read_word(&signature);
 	if( sig == EEPROM_SIGNATURE){ //signature ok
+		succes = 1;
 		eeprom_busy_wait();
 		eeprom_read_block((void*) config, (void*)&eeprom_config, sizeof(threshold_t));
 	}
