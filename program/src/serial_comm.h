@@ -33,3 +33,8 @@ void USART0_Transmit(uint8_t data);
  * indefinetely.
  */
 uint8_t USART0_Receive();
+
+/*
+ * Enable receive interrupt. ISR must be specified.
+ */
+void USART0_Receive_sei();

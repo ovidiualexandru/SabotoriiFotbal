@@ -28,3 +28,8 @@ uint8_t USART0_Receive()
 	loop_until_bit_is_set(UCSR0A, RXC0);
 	return UDR0;
 }
+
+void USART0_Receive_sei()
+{
+	UCSR0B |= _BV(RXCIE0);
+}
