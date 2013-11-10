@@ -111,5 +111,10 @@ int main()
 	set_servo(SERVO_MAX-2);
 	USART0_Receive_sei();
 	sei();
-	for(;;);
+	for(;;){
+		if( dig_teren()){
+			clear_led_teren();
+		}
+		else set_led_teren();
+	}
 }
