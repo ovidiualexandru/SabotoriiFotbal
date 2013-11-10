@@ -14,7 +14,7 @@ threshold_t sensor_thresholds;
 ISR(USART0_RX_vect)
 {
 	uint8_t command = UDR0;
-	if(command == '$'){
+	if(command == '$'){ // Read Sensors
 		ana_set(ANA_SHARP_JOS);
 		ana_read();
 		uint8_t jos = ana_read();
@@ -51,8 +51,9 @@ ISR(USART0_RX_vect)
 		USART0_Transmit(sus);
 		USART0_Transmit(lum_stanga);
 		USART0_Transmit(lum_dreapta);
+
 	}
-	else if(command == '#'){
+	else if(command == '#'){ // Write thresholds
 		uint8_t threshold_jos = USART0_Receive();
 		uint8_t threshold_sus = USART0_Receive();
 		uint8_t threshold_left = USART0_Receive();
@@ -62,6 +63,12 @@ ISR(USART0_RX_vect)
 		sensor_thresholds.lumina_stanga = threshold_left;
 		sensor_thresholds.lumina_dreapta = threshold_right;
 		store_config(&sensor_thresholds);
+	}
+	else if(command == '%'){ //Read thresholds
+		USART0_Transmit(sensor_thresholds.jos);
+		USART0_Transmit(sensor_thresholds.sus);
+		USART0_Transmit(sensor_thresholds.lumina_stanga);
+		USART0_Transmit(sensor_thresholds.lumina_dreapta);
 	}
 }
 
@@ -101,7 +108,7 @@ int main()
 	clear_led(LED4);
 	clear_led_teren();
 	_delay_ms(1000);
-	set_servo(SERVO_MAX);
+	set_servo(SERVO_MAX-2);
 	USART0_Receive_sei();
 	sei();
 	for(;;);
