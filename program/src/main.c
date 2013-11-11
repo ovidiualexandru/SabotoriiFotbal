@@ -154,5 +154,7 @@ int main()
 	
 	clear_led(LED4);
 	_delay_ms(500);
-	for(;;);
+	for(;;){
+		football_logic();
+	}
 }
