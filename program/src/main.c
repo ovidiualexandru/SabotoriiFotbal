@@ -10,10 +10,48 @@
 
 threshold_t sensor_thresholds;
 
+uint8_t see_ball(uint8_t up, uint8_t down)
+{
+	uint8_t ret = 0;
+	if( down > up && (down - up) > 10) ret = 1; // condition should be using thresh 
+	return ret;
+}
+
 #define FOOTBALL_STATE_SEARCH 0
 #define FOOTBALL_STATE_DIGITAL_SHARP 1
 #define FOOTBALL_STATE_SEE_BALL 2
 #define FOOTBALL_STATE_CENTER_AND_SHOOT 3
+
+void go_forward()
+{
+	set_motor_left(220, MOTOR_FORWARD);
+	set_motor_right(220, MOTOR_FORWARD);
+	_delay_ms(1000);
+	set_motor_left(0, MOTOR_FORWARD);
+	set_motor_right(0, MOTOR_FORWARD);
+	_delay_ms(300);
+}
+
+void turn_around()
+{
+	set_motor_left(200, MOTOR_FORWARD);
+	set_motor_right(200, MOTOR_BACKWARD);
+	_delay_ms(600);
+	set_motor_left(0, MOTOR_FORWARD);
+	set_motor_right(0, MOTOR_FORWARD);
+	_delay_ms(300);
+}
+
+void get_ball()
+{
+	set_servo(SERVO_MIN);
+	_delay_ms(500);
+	set_roller(255, MOTOR_FORWARD);
+	go_forward();
+	set_servo(SERVO_MAX - 2);
+	set_roller(150, MOTOR_FORWARD);
+	_delay_ms(500);
+}
 
 void football_logic()
 {
@@ -25,6 +63,23 @@ void football_logic()
 				//if set, is next to wall, go somewhere else
 			//check analog sharps
 				//if can see ball, goto state SEE_BALL or just get it
+				if(dig_sharp(DIG_SHARP_LEFT) || dig_sharp(DIG_SHARP_RIGHT)){
+					turn_around();
+				}
+			go_forward();
+			ana_set(ANA_SHARP_DOWN);
+			ana_read();
+			uint8_t jos = ana_read();
+		
+			ana_set(ANA_SHARP_UP);
+			ana_read();
+			uint8_t sus = ana_read();
+			uint8_t seeing_ball = see_ball(sus, jos);
+			
+			if(seeing_ball){
+				get_ball();
+			}
+			
 			break;
 		case FOOTBALL_STATE_DIGITAL_SHARP:
 			// go back a little, turn around and go back to searching
