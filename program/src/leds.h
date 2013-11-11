@@ -30,17 +30,17 @@ static inline void clear_led(uint8_t led_bit)
 /*
  * Light up the field LED.
  */
-static inline void set_led_teren()
+static inline void set_led_field()
 {
-	LED_TEREN_PORT |= _BV(LED_TEREN_BIT);
+	LED_FIELD_PORT |= _BV(LED_FIELD_BIT);
 }
 
 /*
  * Close the field LED.
  */
-static inline void clear_led_teren()
+static inline void clear_led_field()
 {
-	LED_TEREN_PORT &= ~_BV(LED_TEREN_BIT);
+	LED_FIELD_PORT &= ~_BV(LED_FIELD_BIT);
 }
 
 /*

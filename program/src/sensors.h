@@ -13,14 +13,14 @@ Reads digital and analog sensors.
 *****************************************/
 /*
  * Read a digital sharp sensor. Valid arguments: DIG_SHARP_STANGA,
- * DIG_SHARP_DREAPTA.
+ * DIG_SHARP_RIGHT.
  */
 #define dig_sharp(sharp) ((DIG_SHARP_PIN & _BV(sharp)) ? 0 : 1)
 
 /*
  * Read the white sensor.
  */
-#define dig_teren() ( (TEREN_PIN & _BV(TEREN_BIT)) ? 0 : 1)
+#define dig_field() ( (FIELD_PIN & _BV(FIELD_BIT)) ? 0 : 1)
 /****************************************/
 
 /*
@@ -29,7 +29,7 @@ Reads digital and analog sensors.
 void initadc();
 /*
  * Set a channel for analog reading.Valid arguments: ANA_SHARP_JOS, ANA_SHARP_SUS,
- * ANA_FOTO_STANGA, ANA_FOTO_DREAPTA.
+ * ANA_FOTO_LEFT, ANA_FOTO_RIGHT.
  */
 void ana_set(uint8_t sensor);
 

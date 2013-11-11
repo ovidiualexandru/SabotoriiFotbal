@@ -24,10 +24,10 @@ Compatibility with Proteus schematic
 #define LED2 PC2
 #define LED3 PC1
 #define LED4 PC0
-#define LED_TEREN_BIT PD4
+#define LED_FIELD_BIT PD4
 
 //Reflectance sensor
-#define TEREN_BIT PD3
+#define FIELD_BIT PD3
 //Unused
 #define DUMMY_IN1 PC6
 
@@ -69,26 +69,26 @@ Mapping for motors
 #define SERVO_POS_PORT D2PWM_PORT
 
 //Roll control
-#define ROLA_POWER D1PWM2
-#define ROLA_DIR_PORT PORTB
-#define ROLA_DIR_BIT ROLAIN1
-#define ROLA_DIR_DDR  DDRB
+#define ROLLER_POWER D1PWM2
+#define ROLLER_DIR_PORT PORTB
+#define ROLLER_DIR_BIT ROLAIN1
+#define ROLLER_DIR_DDR  DDRB
 /****************************************/
 
 /*****************************************
 Mapping for Sharp sensors
 *****************************************/
 //Digital Sharp
-#define DIG_SHARP_STANGA SHARP1
-#define DIG_SHARP_DREAPTA SHARP2
+#define DIG_SHARP_LEFT SHARP1
+#define DIG_SHARP_RIGHT SHARP2
 //Analog sharp
-#define ANA_SHARP_SUS SHARP3
-#define ANA_SHARP_JOS SHARP4
-#define ANA_FOTO_STANGA SLUM1
-#define ANA_FOTO_DREAPTA SLUM2
+#define ANA_SHARP_UP SHARP3
+#define ANA_SHARP_DOWN SHARP4
+#define ANA_FOTO_LEFT SLUM1
+#define ANA_FOTO_RIGHT SLUM2
 
 #define DIG_SHARP_PIN PINA
-#define TEREN_PIN PIND
+#define FIELD_PIN PIND
 /****************************************/
 
 /*****************************************
@@ -97,15 +97,6 @@ Mapping for LEDs
 #define LED_PORT PORTC
 #define LED_DDR DDRC
 
-#define LED_TEREN_DDR DDRD
-#define LED_TEREN_PORT PORTD
+#define LED_FIELD_DDR DDRD
+#define LED_FIELD_PORT PORTD
 /****************************************/
-//Rola Control
-#define SUCK_POWER 240
-#define SPIT_POWER 250
-#define HOLD_POWER 180
-#define rola_suck() PORTB &= ~_BV(ROLA_DIR_BIT); ROLA_POWER = SUCK_POWER
-#define rola_spit() PORTB |= _BV(ROLA_DIR_BIT); ROLA_POWER = SPIT_POWER
-#define rola_stop() ROLA_POWER = 0
-#define rola_fleghm() PORTB ^= _BV(ROLA_DIR_BIT)
-#define rola_hold() PORTB &= ~_BV(ROLA_DIR_BIT); ROLA_POWER = HOLD_POWER

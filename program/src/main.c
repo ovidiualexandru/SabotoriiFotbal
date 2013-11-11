@@ -10,39 +10,38 @@
 
 threshold_t sensor_thresholds;
 
-
 ISR(USART0_RX_vect)
 {
 	uint8_t command = UDR0;
 	if(command == '$'){ // Read Sensors
-		ana_set(ANA_SHARP_JOS);
+		ana_set(ANA_SHARP_DOWN);
 		ana_read();
 		uint8_t jos = ana_read();
 		
-		ana_set(ANA_SHARP_SUS);
+		ana_set(ANA_SHARP_UP);
 		ana_read();
 		uint8_t sus = ana_read();
 		
-		ana_set(ANA_FOTO_STANGA);
+		ana_set(ANA_FOTO_LEFT);
 		ana_read();
 		uint8_t lum_stanga = ana_read();
 		
-		ana_set(ANA_FOTO_DREAPTA);
+		ana_set(ANA_FOTO_RIGHT);
 		ana_read();
 		uint8_t lum_dreapta = ana_read();
 		
-		uint8_t stanga = dig_sharp(DIG_SHARP_STANGA);
-		uint8_t dreapta = dig_sharp(DIG_SHARP_DREAPTA);
-		uint8_t teren = dig_teren();
+		uint8_t stanga = dig_sharp(DIG_SHARP_LEFT);
+		uint8_t dreapta = dig_sharp(DIG_SHARP_RIGHT);
+		uint8_t field = dig_field();
 		
-		uint8_t threshold_jos = ( jos > sensor_thresholds.jos) ? 1 : 0;
-		uint8_t threshold_sus = ( sus > sensor_thresholds.sus) ? 1 : 0;
-		uint8_t threshold_stg = (lum_stanga > sensor_thresholds.lumina_stanga) \
+		uint8_t threshold_jos = ( jos > sensor_thresholds.down) ? 1 : 0;
+		uint8_t threshold_sus = ( sus > sensor_thresholds.up) ? 1 : 0;
+		uint8_t threshold_stg = (lum_stanga > sensor_thresholds.left) \
 			? 1 : 0;
-		uint8_t threshold_drp = (lum_dreapta > sensor_thresholds.lumina_dreapta) \
+		uint8_t threshold_drp = (lum_dreapta > sensor_thresholds.right) \
 			? 1 : 0;
 		
-		uint8_t first_byte = (stanga<<7) | (dreapta<<6) | (teren<<5) \
+		uint8_t first_byte = (stanga<<7) | (dreapta<<6) | (field<<5) \
 			| (threshold_jos<<4) | (threshold_sus<<3) | (threshold_stg<<2) \
 			| (threshold_drp<<1);
 		
@@ -58,17 +57,17 @@ ISR(USART0_RX_vect)
 		uint8_t threshold_sus = USART0_Receive();
 		uint8_t threshold_left = USART0_Receive();
 		uint8_t threshold_right = USART0_Receive();
-		sensor_thresholds.jos = threshold_jos;
-		sensor_thresholds.sus = threshold_sus;
-		sensor_thresholds.lumina_stanga = threshold_left;
-		sensor_thresholds.lumina_dreapta = threshold_right;
+		sensor_thresholds.down = threshold_jos;
+		sensor_thresholds.up = threshold_sus;
+		sensor_thresholds.left = threshold_left;
+		sensor_thresholds.right = threshold_right;
 		store_config(&sensor_thresholds);
 	}
 	else if(command == '%'){ //Read thresholds
-		USART0_Transmit(sensor_thresholds.jos);
-		USART0_Transmit(sensor_thresholds.sus);
-		USART0_Transmit(sensor_thresholds.lumina_stanga);
-		USART0_Transmit(sensor_thresholds.lumina_dreapta);
+		USART0_Transmit(sensor_thresholds.down);
+		USART0_Transmit(sensor_thresholds.up);
+		USART0_Transmit(sensor_thresholds.left);
+		USART0_Transmit(sensor_thresholds.right);
 	}
 }
 
@@ -96,25 +95,25 @@ int main()
 	set_led(LED4);
 	uint8_t loaded_ok = load_config(&sensor_thresholds);
 	if(!loaded_ok){
-		set_led_teren();
-		sensor_thresholds.jos = 100;
-		sensor_thresholds.sus = 100;
-		sensor_thresholds.lumina_stanga = 75;
-		sensor_thresholds.lumina_dreapta = 75;
+		set_led_field();
+		sensor_thresholds.down = 100;
+		sensor_thresholds.up = 100;
+		sensor_thresholds.left = 75;
+		sensor_thresholds.right = 75;
 		store_config(&sensor_thresholds);
 	}
 	_delay_ms(1000);
 	
 	clear_led(LED4);
-	clear_led_teren();
+	clear_led_field();
 	_delay_ms(1000);
 	set_servo(SERVO_MAX-2);
 	USART0_Receive_sei();
 	sei();
 	for(;;){
-		if( dig_teren()){
-			clear_led_teren();
+		if( dig_field()){
+			clear_led_field();
 		}
-		else set_led_teren();
+		else set_led_field();
 	}
 }

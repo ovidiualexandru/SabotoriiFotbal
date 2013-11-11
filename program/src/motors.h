@@ -36,7 +36,7 @@ void set_motor_right(uint8_t value, uint8_t dir);
  * Set the roll motor power and direction. Forward = hold/pull ball, 
  * Backward = push ball
  */
-void set_rola(uint8_t value, uint8_t dir);
+void set_roller(uint8_t value, uint8_t dir);
 
 /*
  * Set the servo position. Valid positions between 20 and 39.

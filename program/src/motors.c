@@ -14,7 +14,7 @@ void initmotors()
 	M1_DDR |= _BV(M1IN1);
 	M2_DDR |= _BV(M2IN1) | _BV(DUMMY_IN1);
 	
-	ROLA_DIR_DDR |= _BV(ROLA_DIR_BIT);
+	ROLLER_DIR_DDR |= _BV(ROLLER_DIR_BIT);
 	
 	//init timere motoare
 	//Clear all settings, Paranoid Parrot © style
@@ -59,8 +59,8 @@ void initmotors()
 #define motor_left_forward() M1_PORT |= _BV(M1IN1)
 #define motor_right_forward() M2_PORT |= _BV(M2IN1)
 #define motor_right_backward() M2_PORT &= ~_BV(M2IN1)
-#define rola_forward() ROLA_DIR_PORT &= ~_BV(ROLA_DIR_BIT);
-#define rola_backward() ROLA_DIR_PORT |= _BV(ROLA_DIR_BIT);
+#define roller_forward() ROLLER_DIR_PORT &= ~_BV(ROLLER_DIR_BIT);
+#define roller_backward() ROLLER_DIR_PORT |= _BV(ROLLER_DIR_BIT);
 
 
 #define MOTOR_LEFT_POWER D1PWM1
@@ -89,23 +89,23 @@ void set_motor_right(uint8_t value, uint8_t dir)
 }
 
 
-void set_rola(uint8_t value, uint8_t dir)
+void set_roller(uint8_t value, uint8_t dir)
 {
 	if( dir){
-		rola_forward();
+		roller_forward();
 	}
 	else{
-		rola_backward();
+		roller_backward();
 	}
-	ROLA_POWER = value;
+	ROLLER_POWER = value;
 }
 
 uint8_t set_servo(uint8_t pos)
 {
-	uint8_t succes = 0;
+	uint8_t success = 0;
 	if( (pos <= SERVO_MAX) && (pos >= SERVO_MIN)){
 		SERVO_POS = pos;
-		succes = 1;
+		success = 1;
 	}
-	return succes;	
+	return success;	
 }
