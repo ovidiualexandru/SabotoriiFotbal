@@ -24,6 +24,11 @@ Reads digital and analog sensors.
 /****************************************/
 
 /*
+ * Read the stop pin - used for programming. Pull-up set in initleds().
+ */
+#define dig_stop() ( (STOP_PIN & _BV(STOP_BIT)) ? 0 : 1)
+
+/*
  * Initialize the ADC.
  */
 void initadc();
