@@ -77,22 +77,10 @@ int main()
 	initleds();
 	initadc();
 	initmotors();
-	set_servo(SERVO_MIN);
 	USART0_Init();
-
-	set_led(LED1);
-	_delay_ms(1000);
 	
-	clear_led(LED1);
-	set_led(LED2);
-	_delay_ms(1000);
-	
-	clear_led(LED2);
-	set_led(LED3);
-	_delay_ms(1000);
-	
-	clear_led(LED3);
-	set_led(LED4);
+	set_servo(SERVO_MAX-2);
+	_delay_ms(100);
 	uint8_t loaded_ok = load_config(&sensor_thresholds);
 	if(!loaded_ok){
 		set_led_field();
@@ -102,18 +90,30 @@ int main()
 		sensor_thresholds.right = 75;
 		store_config(&sensor_thresholds);
 	}
-	_delay_ms(1000);
+	
+	if(dig_stop()){
+		USART0_Receive_sei();
+		set_led_field();
+		sei();
+		for(;;);
+	}
+	
+	set_led(LED1);
+	_delay_ms(500);
+	
+	clear_led(LED1);
+	set_led(LED2);
+	_delay_ms(500);
+	
+	clear_led(LED2);
+	set_led(LED3);
+	_delay_ms(500);
+	
+	clear_led(LED3);
+	set_led(LED4);
+	_delay_ms(500);
 	
 	clear_led(LED4);
-	clear_led_field();
-	_delay_ms(1000);
-	set_servo(SERVO_MAX-2);
-	USART0_Receive_sei();
-	sei();
-	for(;;){
-		if( dig_field()){
-			clear_led_field();
-		}
-		else set_led_field();
-	}
+	_delay_ms(500);
+	for(;;);
 }

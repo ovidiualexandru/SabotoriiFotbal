@@ -26,6 +26,11 @@ Compatibility with Proteus schematic
 #define LED4 PC0
 #define LED_FIELD_BIT PD4
 
+//STOP PIN
+#define STOP_PIN PINC
+#define STOP_PORT PORTC
+#define STOP_BIT PC4
+
 //Reflectance sensor
 #define FIELD_BIT PD3
 //Unused
