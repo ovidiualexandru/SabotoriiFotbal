@@ -10,6 +10,45 @@
 
 threshold_t sensor_thresholds;
 
+#define FOOTBALL_STATE_SEARCH 0
+#define FOOTBALL_STATE_DIGITAL_SHARP 1
+#define FOOTBALL_STATE_SEE_BALL 2
+#define FOOTBALL_STATE_CENTER_AND_SHOOT 3
+
+void football_logic()
+{
+	static uint8_t state = FOOTBALL_STATE_SEARCH;
+	switch(state){
+		case FOOTBALL_STATE_SEARCH:
+			//go forward a little
+			//check digital sharps
+				//if set, is next to wall, go somewhere else
+			//check analog sharps
+				//if can see ball, goto state SEE_BALL or just get it
+			break;
+		case FOOTBALL_STATE_DIGITAL_SHARP:
+			// go back a little, turn around and go back to searching
+			break;
+		case FOOTBALL_STATE_SEE_BALL:
+			//get distance to ball and decide how much to go forward
+			//raise servo, start roller on full power
+			//go forward a distance
+			//lower servo, set roller to holding speed
+			//if having enough balls
+				//go to center and shoot
+			//go to searching
+			break;
+		case FOOTBALL_STATE_CENTER_AND_SHOOT:
+			//check fototransistors and make adjustments until is centered
+			//check the field sensor to be on right side
+			//go to goal and shoot
+			//turn around, go a distance
+			//go to searching
+			break;
+	}
+}
+
+
 ISR(USART0_RX_vect)
 {
 	uint8_t command = UDR0;
