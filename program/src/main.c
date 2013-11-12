@@ -10,17 +10,46 @@
 
 threshold_t sensor_thresholds;
 
-uint8_t see_ball(uint8_t up, uint8_t down)
+#define BD_NOWALL_NOBALL 0
+#define BD_NOWALL_MEDIUMBALL 0x01
+#define BD_NOWALL_CLOSEBALL 0x02
+#define BD_MEDIUMWALL_NOBALL 0x10
+#define BD_MEDIUMWALL_MEDIUMBALL 0x11
+#define BD_MEDIUMWALL_CLOSEBALL 0x12
+#define BD_CLOSEWALL_NOBALL 0x20
+#define BD_CLOSEWALL_CLOSEBALL 0x22
+#define BD_TOOCLOSE 0xFF
+
+#define BD_NOWALL 0x00
+#define BD_MEDIUMWALL 0x10
+#define BD_CLOSEWALL 0x20
+#define BD_NOBALL 0x00
+#define BD_MEDIUMBALL 0x01
+#define BD_CLOSEBALL 0x02
+
+uint8_t ball_detection(uint8_t up, uint8_t down)
 {
-	uint8_t ret = 0;
-	if( down > up && (down - up) > 10) ret = 1; // condition should be using thresh 
+	uint8_t ret = BD_NOWALL_NOBALL;
+	uint8_t wall = BD_NOWALL;
+	uint8_t ball = BD_NOBALL;
+	if( up > 45 ) wall = BD_MEDIUMWALL;
+	if( up > 95 ) wall = BD_CLOSEWALL;
+	
+	if( down > up && (down - up > 15)){
+		if( wall == BD_NOWALL ) ball = BD_MEDIUMBALL;
+		if( wall == BD_MEDIUMWALL ) ball = BD_CLOSEBALL;
+		if( wall == BD_CLOSEWALL ) ball = BD_CLOSEBALL;
+	}
+	ret = wall | ball;
+	if( wall == BD_CLOSEWALL && up > down) ret = BD_TOOCLOSE;
 	return ret;
 }
 
 #define FOOTBALL_STATE_SEARCH 0
-#define FOOTBALL_STATE_DIGITAL_SHARP 1
-#define FOOTBALL_STATE_SEE_BALL 2
-#define FOOTBALL_STATE_CENTER_AND_SHOOT 3
+#define FOOTBALL_STATE_TOOCLOSE_RIGHT 1
+#define FOOTBALL_STATE_TOOCLOSE_LEFT 2
+#define FOOTBALL_STATE_SEE_BALL 3
+#define FOOTBALL_STATE_CENTER_AND_SHOOT 4
 
 void go_forward()
 {
@@ -53,9 +82,21 @@ void get_ball()
 	_delay_ms(500);
 }
 
+
+#define switch_state(STATE) state = STATE;\
+	substate = 0; \
+	i = 0; \
+	set_motor_left(0, MOTOR_FORWARD); \
+	set_motor_right(0, MOTOR_FORWARD); \
+	_delay_ms(500);
+	
 void football_logic()
 {
 	static uint8_t state = FOOTBALL_STATE_SEARCH;
+	static uint8_t substate = 0;
+	static uint8_t i = 0;
+	uint8_t j = 0;
+	uint16_t acc_down = 0, acc_up = 0;
 	switch(state){
 		case FOOTBALL_STATE_SEARCH:
 			//go forward a little
@@ -63,26 +104,108 @@ void football_logic()
 				//if set, is next to wall, go somewhere else
 			//check analog sharps
 				//if can see ball, goto state SEE_BALL or just get it
-				if(dig_sharp(DIG_SHARP_LEFT) || dig_sharp(DIG_SHARP_RIGHT)){
-					turn_around();
-				}
-			go_forward();
 			ana_set(ANA_SHARP_DOWN);
 			ana_read();
-			uint8_t jos = ana_read();
+			for( j = 0; j < 4; j++){
+				acc_down = ana_read();
+				}
+			uint8_t down = acc_down >> 2;
 		
 			ana_set(ANA_SHARP_UP);
 			ana_read();
-			uint8_t sus = ana_read();
-			uint8_t seeing_ball = see_ball(sus, jos);
+			for( j = 0; j < 4; j++){
+				acc_up = ana_read();
+				}
+			uint8_t up= acc_up >> 2;
 			
-			if(seeing_ball){
-				get_ball();
+			uint8_t ballpos = ball_detection(up, down);
+			if(dig_sharp(DIG_SHARP_LEFT) || ballpos == BD_TOOCLOSE){
+				switch_state(FOOTBALL_STATE_TOOCLOSE_LEFT);
+				break;
 			}
-			
+			if( dig_sharp(DIG_SHARP_RIGHT)){
+				switch_state(FOOTBALL_STATE_TOOCLOSE_RIGHT);
+				break;
+			}
+			if( (ballpos & 0x0F) != BD_NOBALL){
+				switch_state(FOOTBALL_STATE_SEE_BALL);
+				break;
+			}
+			switch(substate){
+				case 0: //SCAN LEFT
+					set_motor_left(120, MOTOR_BACKWARD);
+					set_motor_right(120, MOTOR_FORWARD);
+					_delay_ms(10);
+					i++;
+					if( i == 120){
+						substate = 1;
+						i = 0;
+					}
+					break;
+				case 1: //SCAN RIGHT
+					set_motor_left(120, MOTOR_FORWARD);
+					set_motor_right(120, MOTOR_BACKWARD);
+					_delay_ms(10);
+					i++;
+					if( i == 200){
+						substate = 2;
+						i = 0;
+					}
+					break;
+				case 2: //STRAIGHTEN
+					set_motor_left(120, MOTOR_BACKWARD);
+					set_motor_right(120, MOTOR_FORWARD);
+					_delay_ms(10);
+					i++;
+					if( i == 90){
+						substate = 3;
+						i = 0;
+					}
+					break;				
+				case 3: //GO FORWARD
+					set_motor_left(150, MOTOR_FORWARD);
+					set_motor_right(150, MOTOR_FORWARD);
+					_delay_ms(10);
+					i++;
+					if( i == 70){
+						substate = 0;
+						i = 0;
+					}
+					break;
+				default: break;
+			}
 			break;
-		case FOOTBALL_STATE_DIGITAL_SHARP:
+		case FOOTBALL_STATE_TOOCLOSE_RIGHT:
 			// go back a little, turn around and go back to searching
+			set_motor_left(200, MOTOR_BACKWARD);
+			set_motor_right(200, MOTOR_BACKWARD);
+			_delay_ms(300);
+			set_motor_left(250, MOTOR_BACKWARD);
+			set_motor_right(250, MOTOR_FORWARD);
+			_delay_ms(400);
+			set_motor_left(250, MOTOR_FORWARD);
+			set_motor_right(250, MOTOR_BACKWARD);
+			_delay_ms(50);
+			set_motor_left(0, MOTOR_FORWARD);
+			set_motor_right(0, MOTOR_FORWARD);
+			_delay_ms(200);
+			switch_state(FOOTBALL_STATE_SEARCH);
+			break;
+		case FOOTBALL_STATE_TOOCLOSE_LEFT:
+			// go back a little, turn around and go back to searching
+			set_motor_left(200, MOTOR_BACKWARD);
+			set_motor_right(200, MOTOR_BACKWARD);
+			_delay_ms(300);
+			set_motor_left(250, MOTOR_FORWARD);
+			set_motor_right(250, MOTOR_BACKWARD);
+			_delay_ms(400);
+			set_motor_left(250, MOTOR_BACKWARD);
+			set_motor_right(250, MOTOR_FORWARD);
+			_delay_ms(50);
+			set_motor_left(0, MOTOR_FORWARD);
+			set_motor_right(0, MOTOR_FORWARD);
+			_delay_ms(200);
+			switch_state(FOOTBALL_STATE_SEARCH);
 			break;
 		case FOOTBALL_STATE_SEE_BALL:
 			//get distance to ball and decide how much to go forward
@@ -92,6 +215,27 @@ void football_logic()
 			//if having enough balls
 				//go to center and shoot
 			//go to searching
+			set_servo(SERVO_MIN);
+			set_motor_left(0, MOTOR_FORWARD);
+			set_motor_right(0, MOTOR_FORWARD);
+			_delay_ms(500);
+			
+			set_roller(255, MOTOR_FORWARD);
+			set_motor_left(200, MOTOR_FORWARD);
+			set_motor_right(200, MOTOR_FORWARD);
+			_delay_ms(700);
+			
+			set_roller(255, MOTOR_FORWARD);
+			set_motor_left(160, MOTOR_BACKWARD);
+			set_motor_right(160, MOTOR_BACKWARD);
+			_delay_ms(500);
+			
+			set_roller(170, MOTOR_FORWARD);
+			set_motor_left(0, MOTOR_FORWARD);
+			set_motor_right(0, MOTOR_FORWARD);
+			set_servo(SERVO_MAX-2);
+			_delay_ms(1000);
+			switch_state(FOOTBALL_STATE_SEARCH);
 			break;
 		case FOOTBALL_STATE_CENTER_AND_SHOOT:
 			//check fototransistors and make adjustments until is centered
@@ -100,6 +244,7 @@ void football_logic()
 			//turn around, go a distance
 			//go to searching
 			break;
+		default: break;
 	}
 }
 
