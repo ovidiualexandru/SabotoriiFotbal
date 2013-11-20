@@ -289,8 +289,6 @@ void football_logic()
 			
 	uint8_t ballpos = ball_detection(up, down);
 	uint8_t lightpos = light_detection(left, right);
-	left = lightpos >> 4;
-	right = lightpos & 0x0F;
 
 	if(dig_sharp(DIG_SHARP_LEFT) || ballpos == BD_TOOCLOSE){
 		too_close_left();
