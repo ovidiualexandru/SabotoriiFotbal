@@ -10,14 +10,39 @@
 
 threshold_t sensor_thresholds;
 
+#define SCAN_BASE_SPEED 140
+#define SCAN_GO_FORWARD_SPEED 160
+
+#define SCAN_LEFT_TIME 100
+#define SCAN_RIGHT_TIME 200
+#define SCAN_STRAIGHTEN_TIME 120
+#define SCAN_GO_FORWARD_TIME 100
+
+#define GOAL_
+
+uint8_t ana_read_chan(uint8_t channel)
+{
+	ana_set(channel);
+	ana_read();
+	uint8_t ret = ana_read();
+	return ret;
+}
+
+uint8_t ana_read_filtered(uint8_t channel)
+{
+	uint8_t j;
+	ana_set(channel);
+	ana_read();
+	uint16_t acc = 0;
+	for( j = 0; j < 4; j++){
+		acc += ana_read();
+		}
+	uint8_t ret = acc >> 2;
+	return ret;
+}
+
+
 #define BD_NOWALL_NOBALL 0
-#define BD_NOWALL_MEDIUMBALL 0x01
-#define BD_NOWALL_CLOSEBALL 0x02
-#define BD_MEDIUMWALL_NOBALL 0x10
-#define BD_MEDIUMWALL_MEDIUMBALL 0x11
-#define BD_MEDIUMWALL_CLOSEBALL 0x12
-#define BD_CLOSEWALL_NOBALL 0x20
-#define BD_CLOSEWALL_CLOSEBALL 0x22
 #define BD_TOOCLOSE 0xFF
 
 #define BD_NOWALL 0x00
@@ -32,10 +57,10 @@ uint8_t ball_detection(uint8_t up, uint8_t down)
 	uint8_t ret = BD_NOWALL_NOBALL;
 	uint8_t wall = BD_NOWALL;
 	uint8_t ball = BD_NOBALL;
-	if( up > 45 ) wall = BD_MEDIUMWALL;
-	if( up > 95 ) wall = BD_CLOSEWALL;
+	if( up > 80 ) wall = BD_MEDIUMWALL;
+	if( up > 150 ) wall = BD_CLOSEWALL;
 	
-	if( down > up && (down - up > 15)){
+	if( (down > up) && (down - up > 50)){
 		if( wall == BD_NOWALL ) ball = BD_MEDIUMBALL;
 		if( wall == BD_MEDIUMWALL ) ball = BD_CLOSEBALL;
 		if( wall == BD_CLOSEWALL ) ball = BD_CLOSEBALL;
@@ -71,26 +96,14 @@ uint8_t light_detection(uint8_t left, uint8_t right)
 	return ret;
 }
 
-uint8_t ana_read_filtered(uint8_t channel)
-{
-	uint8_t ret = 0;
-	uint8_t j;
-	ana_set(channel);
-	ana_read();
-	uint16_t ret_acc = 0;
-	for( j = 0; j < 4; j++){
-		ret_acc += ana_read();
-		}
-	ret = ret_acc >> 2;
-	return ret;
-}
+
 
 void get_ball()
 {
 	set_servo(SERVO_MIN);
 	set_motor_left(0, MOTOR_FORWARD);
 	set_motor_right(0, MOTOR_FORWARD);
-	_delay_ms(500);
+	_delay_ms(1000);
 	
 	set_roller(255, MOTOR_FORWARD);
 	set_motor_left(200, MOTOR_FORWARD);
@@ -141,14 +154,37 @@ void too_close_left()
 	_delay_ms(200);
 }
 
+typedef void (*State)(uint8_t, uint8_t);
+State state;
+
+void football_logic()
+{
+	uint8_t down, up, left, right;
+	
+	down = ana_read_filtered(ANA_SHARP_DOWN);			
+	up = ana_read_filtered(ANA_SHARP_UP);
+	left = ana_read_filtered(ANA_FOTO_LEFT);
+	right = ana_read_filtered(ANA_FOTO_RIGHT);
+	
+	// up >>= 2;
+	// down >> 2;
+	uint8_t ballpos = ball_detection(up, down);
+	uint8_t lightpos = light_detection(left, right);
+
+	if(dig_sharp(DIG_SHARP_LEFT) || ballpos == BD_TOOCLOSE){
+		too_close_left();
+	}
+	else if( dig_sharp(DIG_SHARP_RIGHT)){
+		too_close_right();
+	}
+	state(ballpos, lightpos);
+}
+
 #define reset_state() substate = 0; \
 	i = 0; \
 	set_motor_left(0, MOTOR_FORWARD); \
 	set_motor_right(0, MOTOR_FORWARD); \
 	_delay_ms(500)
-
-typedef void (*State)(uint8_t, uint8_t);
-State state;
 
 void state_search(uint8_t ballpos, uint8_t lightpos)
 {
@@ -163,41 +199,41 @@ void state_search(uint8_t ballpos, uint8_t lightpos)
 	}
 	switch(substate){
 		case 0: //SCAN LEFT
-			set_motor_left(120, MOTOR_BACKWARD);
-			set_motor_right(120, MOTOR_FORWARD);
+			set_motor_left(SCAN_BASE_SPEED, MOTOR_BACKWARD);
+			set_motor_right(SCAN_BASE_SPEED, MOTOR_FORWARD);
 			_delay_ms(10);
 			i++;
-			if( i == 120){
+			if( i == SCAN_LEFT_TIME){
 				substate = 1;
 				i = 0;
 			}
 			break;
 		case 1: //SCAN RIGHT
-			set_motor_left(120, MOTOR_FORWARD);
-			set_motor_right(120, MOTOR_BACKWARD);
+			set_motor_left(SCAN_BASE_SPEED, MOTOR_FORWARD);
+			set_motor_right(SCAN_BASE_SPEED, MOTOR_BACKWARD);
 			_delay_ms(10);
 			i++;
-			if( i == 200){
+			if( i == SCAN_RIGHT_TIME){
 				substate = 2;
 				i = 0;
 			}
 			break;
 		case 2: //STRAIGHTEN
-			set_motor_left(120, MOTOR_BACKWARD);
-			set_motor_right(120, MOTOR_FORWARD);
+			set_motor_left(SCAN_BASE_SPEED, MOTOR_BACKWARD);
+			set_motor_right(SCAN_BASE_SPEED, MOTOR_FORWARD);
 			_delay_ms(10);
 			i++;
-			if( i == 90){
+			if( i == SCAN_STRAIGHTEN_TIME){
 				substate = 3;
 				i = 0;
 			}
-			break;				
+			break;
 		case 3: //GO FORWARD
-			set_motor_left(150, MOTOR_FORWARD);
-			set_motor_right(150, MOTOR_FORWARD);
+			set_motor_left(SCAN_GO_FORWARD_SPEED, MOTOR_FORWARD);
+			set_motor_right(SCAN_GO_FORWARD_SPEED, MOTOR_FORWARD);
 			_delay_ms(10);
 			i++;
-			if( i == 70){
+			if( i == SCAN_GO_FORWARD_TIME){
 				substate = 0;
 				i = 0;
 			}
@@ -212,51 +248,51 @@ void state_goal(uint8_t ballpos, uint8_t lightpos)
 	static uint8_t i = 0;
 	uint8_t left = lightpos >> 4;
 	uint8_t right = lightpos & 0x0F;
-	if( ((left!= LD_NOLIGHT) || (right != LD_NOLIGHT))){
-		if(substate <= 3){
-			substate = 4;
-		}
-	}
-	else if( substate > 3){
-		substate = 0;
-	}
+	// if( ((left!= LD_NOLIGHT) || (right != LD_NOLIGHT))){
+		// if(substate <= 3){
+			// substate = 4;
+		// }
+	// }
+	// else if( substate > 3){
+		// substate = 0;
+	// }
 	switch(substate){
 		case 0: //SCAN LEFT
-			set_motor_left(120, MOTOR_BACKWARD);
-			set_motor_right(120, MOTOR_FORWARD);
+			set_motor_left(SCAN_BASE_SPEED, MOTOR_BACKWARD);
+			set_motor_right(SCAN_BASE_SPEED, MOTOR_FORWARD);
 			_delay_ms(10);
 			i++;
-			if( i == 120){
+			if( i == SCAN_LEFT_TIME){
 				substate = 1;
 				i = 0;
 			}
 			break;
 		case 1: //SCAN RIGHT
-			set_motor_left(120, MOTOR_FORWARD);
-			set_motor_right(120, MOTOR_BACKWARD);
+			set_motor_left(SCAN_BASE_SPEED, MOTOR_FORWARD);
+			set_motor_right(SCAN_BASE_SPEED, MOTOR_BACKWARD);
 			_delay_ms(10);
 			i++;
-			if( i == 200){
+			if( i == SCAN_RIGHT_TIME){
 				substate = 2;
 				i = 0;
 			}
 			break;
 		case 2: //STRAIGHTEN
-			set_motor_left(120, MOTOR_BACKWARD);
-			set_motor_right(120, MOTOR_FORWARD);
+			set_motor_left(SCAN_BASE_SPEED, MOTOR_BACKWARD);
+			set_motor_right(SCAN_BASE_SPEED, MOTOR_FORWARD);
 			_delay_ms(10);
 			i++;
-			if( i == 90){
+			if( i == SCAN_STRAIGHTEN_TIME){
 				substate = 3;
 				i = 0;
 			}
 			break;
 		case 3: //GO FORWARD
-			set_motor_left(150, MOTOR_FORWARD);
-			set_motor_right(150, MOTOR_FORWARD);
+			set_motor_left(SCAN_GO_FORWARD_SPEED, MOTOR_FORWARD);
+			set_motor_right(SCAN_GO_FORWARD_SPEED, MOTOR_FORWARD);
 			_delay_ms(10);
 			i++;
-			if( i == 70){
+			if( i == SCAN_GO_FORWARD_TIME){
 				substate = 0;
 				i = 0;
 			}
@@ -272,45 +308,34 @@ void state_goal(uint8_t ballpos, uint8_t lightpos)
 				substate = 7;
 			}
 			break;
-		case 5: break;
+		case 5:
+			set_motor_left(100, MOTOR_BACKWARD);
+			set_motor_right(100 , MOTOR_FORWARD);
+			_delay_ms(10);
+			substate = 4;
+			break;
+		case 6:
+			set_motor_left(100, MOTOR_FORWARD);
+			set_motor_right(100 , MOTOR_BACKWARD);
+			_delay_ms(10);
+			substate = 4;
+			break;
+		case 7:
+			set_motor_left(150, MOTOR_FORWARD);
+			set_motor_right(150, MOTOR_FORWARD);
+			_delay_ms(30);
+			substate = 4;
+			break;
 		default: break;
 	}
 }
-
-
-void football_logic()
-{
-	uint8_t down, up, left, right;
-	
-	down = ana_read_filtered(ANA_SHARP_DOWN);			
-	up = ana_read_filtered(ANA_SHARP_UP);
-	left = ana_read_filtered(ANA_FOTO_LEFT);
-	right = ana_read_filtered(ANA_FOTO_RIGHT);
-			
-	uint8_t ballpos = ball_detection(up, down);
-	uint8_t lightpos = light_detection(left, right);
-
-	if(dig_sharp(DIG_SHARP_LEFT) || ballpos == BD_TOOCLOSE){
-		too_close_left();
-	}
-	else if( dig_sharp(DIG_SHARP_RIGHT)){
-		too_close_right();
-	}
-	state(ballpos, lightpos);
-}
-
 
 ISR(USART0_RX_vect)
 {
 	uint8_t command = UDR0;
 	if(command == '$'){ // Read Sensors
-		ana_set(ANA_SHARP_DOWN);
-		ana_read();
-		uint8_t jos = ana_read();
-		
-		ana_set(ANA_SHARP_UP);
-		ana_read();
-		uint8_t sus = ana_read();
+		uint8_t jos = ana_read_filtered(ANA_SHARP_DOWN);
+		uint8_t sus = ana_read_filtered(ANA_SHARP_UP);
 		
 		ana_set(ANA_FOTO_LEFT);
 		ana_read();
