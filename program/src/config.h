@@ -15,10 +15,8 @@ values are threshold values for analog sensors.
  * Structure that holds threshold values
  */
 struct thresholds_struct{
-	uint8_t up;
-	uint8_t down;
-	uint8_t left;
-	uint8_t right;
+	uint8_t ambient_right;
+	uint8_t ambient_left;
 
 } __attribute__((__packed__));
 

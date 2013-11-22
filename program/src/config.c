@@ -1,7 +1,7 @@
 #include "config.h"
 #include <avr/eeprom.h>
 
-#define EEPROM_SIGNATURE 0xCACA
+#define EEPROM_SIGNATURE 0xDADA
 threshold_t EEMEM eeprom_config;
 uint16_t EEMEM signature;
 

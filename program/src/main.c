@@ -103,7 +103,7 @@ void get_ball()
 	set_servo(SERVO_MIN);
 	set_motor_left(0, MOTOR_FORWARD);
 	set_motor_right(0, MOTOR_FORWARD);
-	_delay_ms(1000);
+	_delay_ms(500);
 	
 	set_roller(255, MOTOR_FORWARD);
 	set_motor_left(200, MOTOR_FORWARD);
@@ -119,7 +119,7 @@ void get_ball()
 	set_motor_left(0, MOTOR_FORWARD);
 	set_motor_right(0, MOTOR_FORWARD);
 	set_servo(SERVO_MAX-2);
-	_delay_ms(1000);
+	_delay_ms(500);
 }
 
 void too_close_right()
@@ -165,9 +165,6 @@ void football_logic()
 	up = ana_read_filtered(ANA_SHARP_UP);
 	left = ana_read_filtered(ANA_FOTO_LEFT);
 	right = ana_read_filtered(ANA_FOTO_RIGHT);
-	
-	// up >>= 2;
-	// down >> 2;
 	uint8_t ballpos = ball_detection(up, down);
 	uint8_t lightpos = light_detection(left, right);
 
@@ -248,14 +245,35 @@ void state_goal(uint8_t ballpos, uint8_t lightpos)
 	static uint8_t i = 0;
 	uint8_t left = lightpos >> 4;
 	uint8_t right = lightpos & 0x0F;
-	// if( ((left!= LD_NOLIGHT) || (right != LD_NOLIGHT))){
-		// if(substate <= 3){
-			// substate = 4;
-		// }
-	// }
-	// else if( substate > 3){
-		// substate = 0;
-	// }
+	if( ((left!= LD_NOLIGHT) || (right != LD_NOLIGHT))){
+		if( (left == LD_GOALLIGHT) && (right == LD_GOALLIGHT) ){
+			clear_led(LED1);
+			clear_led(LED2);
+			clear_led(LED3);
+			clear_led(LED4);
+			set_led(LED1);
+			set_led(LED2);
+			set_led(LED3);
+			set_led(LED4);
+			substate = 8;
+			}
+		else if(substate <= 3){
+			clear_led(LED1);
+			clear_led(LED2);
+			clear_led(LED3);
+			clear_led(LED4);
+			set_led(LED3);
+			substate = 4;
+		}
+	}
+	else if( substate > 3){
+		clear_led(LED1);
+		clear_led(LED2);
+		clear_led(LED3);
+		clear_led(LED4);
+		set_led(LED1);
+		substate = 0;
+	}
 	switch(substate){
 		case 0: //SCAN LEFT
 			set_motor_left(SCAN_BASE_SPEED, MOTOR_BACKWARD);
@@ -308,26 +326,32 @@ void state_goal(uint8_t ballpos, uint8_t lightpos)
 				substate = 7;
 			}
 			break;
-		case 5:
+		case 5: //SCAN LIGHT LEFT
 			set_motor_left(100, MOTOR_BACKWARD);
 			set_motor_right(100 , MOTOR_FORWARD);
 			_delay_ms(10);
 			substate = 4;
 			break;
-		case 6:
+		case 6: //SCAN LIGHT RIGHT
 			set_motor_left(100, MOTOR_FORWARD);
 			set_motor_right(100 , MOTOR_BACKWARD);
 			_delay_ms(10);
 			substate = 4;
 			break;
-		case 7:
+		case 7: //GO FORWARD
 			set_motor_left(150, MOTOR_FORWARD);
 			set_motor_right(150, MOTOR_FORWARD);
 			_delay_ms(30);
 			substate = 4;
 			break;
+		case 8:
+			set_motor_left(0, MOTOR_FORWARD);
+			set_motor_right(0, MOTOR_FORWARD);
+			for(;;);
+			break;
 		default: break;
 	}
+	
 }
 
 ISR(USART0_RX_vect)
@@ -349,15 +373,13 @@ ISR(USART0_RX_vect)
 		uint8_t dreapta = dig_sharp(DIG_SHARP_RIGHT);
 		uint8_t field = dig_field();
 		
-		uint8_t threshold_jos = ( jos > sensor_thresholds.down) ? 1 : 0;
-		uint8_t threshold_sus = ( sus > sensor_thresholds.up) ? 1 : 0;
-		uint8_t threshold_stg = (lum_stanga > sensor_thresholds.left) \
+		uint8_t threshold_stg = (lum_stanga > sensor_thresholds.ambient_left) \
 			? 1 : 0;
-		uint8_t threshold_drp = (lum_dreapta > sensor_thresholds.right) \
+		uint8_t threshold_drp = (lum_dreapta > sensor_thresholds.ambient_right) \
 			? 1 : 0;
 		
 		uint8_t first_byte = (stanga<<7) | (dreapta<<6) | (field<<5) \
-			| (threshold_jos<<4) | (threshold_sus<<3) | (threshold_stg<<2) \
+			| (1<<4) | (1<<3) | (threshold_stg<<2) \
 			| (threshold_drp<<1);
 		
 		USART0_Transmit(first_byte);
@@ -368,21 +390,15 @@ ISR(USART0_RX_vect)
 
 	}
 	else if(command == '#'){ // Write thresholds
-		uint8_t threshold_jos = USART0_Receive();
-		uint8_t threshold_sus = USART0_Receive();
 		uint8_t threshold_left = USART0_Receive();
 		uint8_t threshold_right = USART0_Receive();
-		sensor_thresholds.down = threshold_jos;
-		sensor_thresholds.up = threshold_sus;
-		sensor_thresholds.left = threshold_left;
-		sensor_thresholds.right = threshold_right;
+		sensor_thresholds.ambient_left= threshold_left;
+		sensor_thresholds.ambient_right = threshold_right;
 		store_config(&sensor_thresholds);
 	}
 	else if(command == '%'){ //Read thresholds
-		USART0_Transmit(sensor_thresholds.down);
-		USART0_Transmit(sensor_thresholds.up);
-		USART0_Transmit(sensor_thresholds.left);
-		USART0_Transmit(sensor_thresholds.right);
+		USART0_Transmit(sensor_thresholds.ambient_left);
+		USART0_Transmit(sensor_thresholds.ambient_right);
 	}
 }
 
@@ -399,10 +415,8 @@ int main()
 	uint8_t loaded_ok = load_config(&sensor_thresholds);
 	if(!loaded_ok){
 		set_led_field();
-		sensor_thresholds.down = 100;
-		sensor_thresholds.up = 100;
-		sensor_thresholds.left = 75;
-		sensor_thresholds.right = 75;
+		sensor_thresholds.ambient_left = 66;
+		sensor_thresholds.ambient_right = 76;
 		store_config(&sensor_thresholds);
 	}
 	
@@ -431,7 +445,7 @@ int main()
 	clear_led(LED4);
 	_delay_ms(500);
 	
-	state = state_search;
+	state = state_goal;
 	for(;;){
 		football_logic();
 	}
