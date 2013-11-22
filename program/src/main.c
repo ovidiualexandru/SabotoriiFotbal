@@ -10,16 +10,9 @@
 
 threshold_t sensor_thresholds;
 
-#define SCAN_BASE_SPEED 140
-#define SCAN_GO_FORWARD_SPEED 160
-
-#define SCAN_LEFT_TIME 100
-#define SCAN_RIGHT_TIME 200
-#define SCAN_STRAIGHTEN_TIME 120
-#define SCAN_GO_FORWARD_TIME 100
-
-#define GOAL_
-
+/*****************************************
+Analog reading 
+*****************************************/
 uint8_t ana_read_chan(uint8_t channel)
 {
 	ana_set(channel);
@@ -40,8 +33,11 @@ uint8_t ana_read_filtered(uint8_t channel)
 	uint8_t ret = acc >> 2;
 	return ret;
 }
+/****************************************/
 
-
+/*****************************************
+Interpreting
+*****************************************/
 #define BD_NOWALL_NOBALL 0
 #define BD_TOOCLOSE 0xFF
 
@@ -95,9 +91,11 @@ uint8_t light_detection(uint8_t left, uint8_t right)
 	ret = (lleft<<4) | lright;
 	return ret;
 }
+/****************************************/
 
-
-
+/*****************************************
+Hard-coded actions
+*****************************************/
 void get_ball()
 {
 	set_servo(SERVO_MIN);
@@ -153,7 +151,11 @@ void too_close_left()
 	set_motor_right(0, MOTOR_FORWARD);
 	_delay_ms(200);
 }
+/****************************************/
 
+/*****************************************
+Football logic
+*****************************************/
 typedef void (*State)(uint8_t, uint8_t);
 State state;
 
@@ -176,6 +178,19 @@ void football_logic()
 	}
 	state(ballpos, lightpos);
 }
+/****************************************/
+
+
+/*****************************************
+State machine logic
+*****************************************/
+#define SCAN_BASE_SPEED 140
+#define SCAN_GO_FORWARD_SPEED 160
+
+#define SCAN_LEFT_TIME 100
+#define SCAN_RIGHT_TIME 200
+#define SCAN_STRAIGHTEN_TIME 120
+#define SCAN_GO_FORWARD_TIME 100
 
 #define reset_state() substate = 0; \
 	i = 0; \
@@ -353,6 +368,7 @@ void state_goal(uint8_t ballpos, uint8_t lightpos)
 	}
 	
 }
+/****************************************/
 
 ISR(USART0_RX_vect)
 {
