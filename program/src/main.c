@@ -77,17 +77,22 @@ uint8_t light_detection(uint8_t left, uint8_t right)
 	uint8_t ret;
 	uint8_t lleft = LD_NOLIGHT, lright = LD_NOLIGHT;
 	
-	if(lleft > 50) lleft = LD_FARLIGHT;
-	if(lleft > 80) lleft = LD_CLOSELIGHT;
-	if(lleft > 130) lleft = LD_GOALLIGHT;
-	
-	if(lright > 50) lright = LD_FARLIGHT;
-	if(lright > 80) lright = LD_CLOSELIGHT;
-	if(lright > 150) lright = LD_GOALLIGHT;
+	uint8_t sleft = sensor_thresholds.ambient_left;
+	uint8_t sright = sensor_thresholds.ambient_right;
 	
 	
-	if(lleft < 60) lleft = LD_NOLIGHT; // replace here with values from eeprom
-	if(lright < 60) lright = LD_NOLIGHT; 
+	if(left > sleft){
+		if( left - sleft > 30) lleft = LD_FARLIGHT;
+		if( left - sleft > 60) lleft = LD_MEDIUMLIGHT;
+		if( left - sleft > 90) lleft = LD_CLOSELIGHT;
+		if( left > 200) lleft = LD_GOALLIGHT;
+	}
+	if(right > sright){
+		if( right - sright > 30) lright = LD_FARLIGHT;
+		if( right - sright > 60) lright= LD_MEDIUMLIGHT;
+		if( right - sright > 90) lright= LD_CLOSELIGHT;
+		if( right > 200) lright= LD_GOALLIGHT;
+	}
 	ret = (lleft<<4) | lright;
 	return ret;
 }
@@ -340,15 +345,15 @@ void state_goal(uint8_t ballpos, uint8_t lightpos)
 			}
 			break;
 		case 5: //SCAN LIGHT LEFT
-			set_motor_left(100, MOTOR_BACKWARD);
-			set_motor_right(100 , MOTOR_FORWARD);
-			_delay_ms(10);
+			set_motor_left(80, MOTOR_FORWARD);
+			set_motor_right(130, MOTOR_FORWARD);
+			_delay_ms(30);
 			substate = 4;
 			break;
 		case 6: //SCAN LIGHT RIGHT
-			set_motor_left(100, MOTOR_FORWARD);
-			set_motor_right(100 , MOTOR_BACKWARD);
-			_delay_ms(10);
+			set_motor_left(130, MOTOR_FORWARD);
+			set_motor_right(80, MOTOR_FORWARD);
+			_delay_ms(30);
 			substate = 4;
 			break;
 		case 7: //GO FORWARD
@@ -426,13 +431,8 @@ int main()
 	
 	set_servo(SERVO_MAX-2);
 	_delay_ms(100);
-	uint8_t loaded_ok = load_config(&sensor_thresholds);
-	if(!loaded_ok){
-		set_led_field();
-		sensor_thresholds.ambient_left = 66;
-		sensor_thresholds.ambient_right = 76;
-		store_config(&sensor_thresholds);
-	}
+	sensor_thresholds.ambient_left = 30;
+	sensor_thresholds.ambient_right = 50;
 	
 	if(dig_stop()){
 		USART0_Receive_sei();
