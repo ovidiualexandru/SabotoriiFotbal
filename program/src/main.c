@@ -9,6 +9,7 @@
 #include "config.h"
 
 threshold_t sensor_thresholds;
+uint8_t field;
 
 /*****************************************
 Analog reading 
@@ -155,6 +156,31 @@ void too_close_left()
 	set_motor_left(0, MOTOR_FORWARD);
 	set_motor_right(0, MOTOR_FORWARD);
 	_delay_ms(200);
+}
+
+void shoot()
+{
+	set_servo(SERVO_MIN);
+	set_motor_left(0, MOTOR_FORWARD);
+	set_motor_right(0, MOTOR_FORWARD);
+	_delay_ms(500);
+	set_roller(255, MOTOR_BACKWARD);
+	_delay_ms(2000);
+	set_motor_left(250, MOTOR_BACKWARD);
+	set_motor_right(250, MOTOR_BACKWARD);
+	_delay_ms(200);
+	set_motor_left(0, MOTOR_FORWARD);
+	set_motor_right(0, MOTOR_FORWARD);
+	set_roller(100, MOTOR_FORWARD);
+	_delay_ms(300);
+	set_servo(SERVO_MAX-2);
+	_delay_ms(300);
+	set_motor_left(200, MOTOR_FORWARD);
+	set_motor_right(200, MOTOR_BACKWARD);
+	_delay_ms(300);
+	set_motor_left(0, MOTOR_FORWARD);
+	set_motor_right(0, MOTOR_FORWARD);
+	_delay_ms(300);
 }
 /****************************************/
 
@@ -363,9 +389,7 @@ void state_goal(uint8_t ballpos, uint8_t lightpos)
 			substate = 4;
 			break;
 		case 8:
-			set_motor_left(0, MOTOR_FORWARD);
-			set_motor_right(0, MOTOR_FORWARD);
-			for(;;);
+			shoot();
 			break;
 		default: break;
 	}
@@ -390,14 +414,14 @@ ISR(USART0_RX_vect)
 		
 		uint8_t stanga = dig_sharp(DIG_SHARP_LEFT);
 		uint8_t dreapta = dig_sharp(DIG_SHARP_RIGHT);
-		uint8_t field = dig_field();
+		uint8_t lfield = dig_field();
 		
 		uint8_t threshold_stg = (lum_stanga > sensor_thresholds.ambient_left) \
 			? 1 : 0;
 		uint8_t threshold_drp = (lum_dreapta > sensor_thresholds.ambient_right) \
 			? 1 : 0;
 		
-		uint8_t first_byte = (stanga<<7) | (dreapta<<6) | (field<<5) \
+		uint8_t first_byte = (stanga<<7) | (dreapta<<6) | (lfield<<5) \
 			| (1<<4) | (1<<3) | (threshold_stg<<2) \
 			| (threshold_drp<<1);
 		
@@ -459,6 +483,7 @@ int main()
 	clear_led(LED4);
 	_delay_ms(500);
 	
+	field = dig_field();
 	state = state_goal;
 	for(;;){
 		football_logic();
