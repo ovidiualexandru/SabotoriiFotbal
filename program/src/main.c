@@ -184,8 +184,8 @@ void football_logic()
 /*****************************************
 State machine logic
 *****************************************/
-#define SCAN_BASE_SPEED 140
-#define SCAN_GO_FORWARD_SPEED 160
+#define SCAN_BASE_SPEED 120
+#define SCAN_GO_FORWARD_SPEED 130
 
 #define SCAN_LEFT_TIME 100
 #define SCAN_RIGHT_TIME 200
@@ -203,6 +203,14 @@ void state_search(uint8_t ballpos, uint8_t lightpos)
 	static uint8_t substate = 0;
 	static uint8_t i = 0;
 	static uint8_t balls = 0;
+	//Set state leds
+	set_led(LED1);
+	clear_led(LED2);
+	//Set sensor leds
+	if( (ballpos & 0x0F) != BD_NOBALL) set_led(LED3);
+	else clear_led(LED3);
+	if( (ballpos >> 4) != BD_NOWALL) set_led(LED4);
+	else clear_led(LED4);
 	if( (ballpos & 0x0F) != BD_NOBALL){
 		get_ball();
 		balls++;
@@ -260,33 +268,23 @@ void state_goal(uint8_t ballpos, uint8_t lightpos)
 	static uint8_t i = 0;
 	uint8_t left = lightpos >> 4;
 	uint8_t right = lightpos & 0x0F;
+	//Set state leds
+	clear_led(LED1);
+	set_led(LED2);
+	//Set sensor leds
+	if(left != LD_NOLIGHT) set_led(LED3);
+	else clear_led(LED3);
+	if(right!= LD_NOLIGHT) set_led(LED4);
+	else clear_led(LED4);
 	if( ((left!= LD_NOLIGHT) || (right != LD_NOLIGHT))){
 		if( (left == LD_GOALLIGHT) && (right == LD_GOALLIGHT) ){
-			clear_led(LED1);
-			clear_led(LED2);
-			clear_led(LED3);
-			clear_led(LED4);
-			set_led(LED1);
-			set_led(LED2);
-			set_led(LED3);
-			set_led(LED4);
 			substate = 8;
 			}
 		else if(substate <= 3){
-			clear_led(LED1);
-			clear_led(LED2);
-			clear_led(LED3);
-			clear_led(LED4);
-			set_led(LED3);
 			substate = 4;
 		}
 	}
 	else if( substate > 3){
-		clear_led(LED1);
-		clear_led(LED2);
-		clear_led(LED3);
-		clear_led(LED4);
-		set_led(LED1);
 		substate = 0;
 	}
 	switch(substate){
