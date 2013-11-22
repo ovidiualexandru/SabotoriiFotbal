@@ -10,7 +10,11 @@
 
 threshold_t sensor_thresholds;
 uint8_t field;
-
+uint8_t balls = 0;
+uint8_t use_sharps = 1;
+void state_search(uint8_t ballpos, uint8_t lightpos);
+void state_field(uint8_t ballpos, uint8_t lightpos);
+void state_goal(uint8_t ballpos, uint8_t lightpos);
 /*****************************************
 Analog reading 
 *****************************************/
@@ -181,6 +185,25 @@ void shoot()
 	set_motor_left(0, MOTOR_FORWARD);
 	set_motor_right(0, MOTOR_FORWARD);
 	_delay_ms(300);
+	balls = 0;
+}
+
+void turn_around(){
+	set_motor_left(0, MOTOR_FORWARD);
+	set_motor_right(0, MOTOR_FORWARD);
+	_delay_ms(500);
+	set_motor_left(200, MOTOR_FORWARD);
+	set_motor_right(200, MOTOR_BACKWARD);
+	_delay_ms(600);
+	set_motor_left(0, MOTOR_FORWARD);
+	set_motor_right(0, MOTOR_FORWARD);
+	_delay_ms(1000);
+	set_motor_left(200, MOTOR_FORWARD);
+	set_motor_right(200, MOTOR_FORWARD);
+	_delay_ms(900);
+	set_motor_left(0, MOTOR_FORWARD);
+	set_motor_right(0, MOTOR_FORWARD);
+	_delay_ms(600);
 }
 /****************************************/
 
@@ -201,11 +224,16 @@ void football_logic()
 	uint8_t ballpos = ball_detection(up, down);
 	uint8_t lightpos = light_detection(left, right);
 
-	if(dig_sharp(DIG_SHARP_LEFT) || ballpos == BD_TOOCLOSE){
-		too_close_left();
+	if( use_sharps){
+		if(dig_sharp(DIG_SHARP_LEFT) || ballpos == BD_TOOCLOSE){
+			too_close_left();
+		}
+		else if( dig_sharp(DIG_SHARP_RIGHT)){
+			too_close_right();
+		}
 	}
-	else if( dig_sharp(DIG_SHARP_RIGHT)){
-		too_close_right();
+	if(balls >= 3){
+		state = state_field;
 	}
 	state(ballpos, lightpos);
 }
@@ -215,13 +243,13 @@ void football_logic()
 /*****************************************
 State machine logic
 *****************************************/
-#define SCAN_BASE_SPEED 120
+#define SCAN_BASE_SPEED 130
 #define SCAN_GO_FORWARD_SPEED 130
 
-#define SCAN_LEFT_TIME 100
-#define SCAN_RIGHT_TIME 200
-#define SCAN_STRAIGHTEN_TIME 120
-#define SCAN_GO_FORWARD_TIME 100
+#define SCAN_LEFT_TIME 60
+#define SCAN_RIGHT_TIME 140
+#define SCAN_STRAIGHTEN_TIME 60
+#define SCAN_GO_FORWARD_TIME 160
 
 #define reset_state() substate = 0; \
 	i = 0; \
@@ -233,7 +261,7 @@ void state_search(uint8_t ballpos, uint8_t lightpos)
 {
 	static uint8_t substate = 0;
 	static uint8_t i = 0;
-	static uint8_t balls = 0;
+	use_sharps = 1;
 	//Set state leds
 	set_led(LED1);
 	clear_led(LED2);
@@ -293,12 +321,17 @@ void state_search(uint8_t ballpos, uint8_t lightpos)
 	}
 }
 
-void state_goal(uint8_t ballpos, uint8_t lightpos)
+#define SEARCH_BASE_HIGH_SPEED 150
+#define SEARCH_BASE_LOW_SPEED 120
+
+void state_field(uint8_t ballpos, uint8_t lightpos)
 {
 	static uint8_t substate = 0;
 	static uint8_t i = 0;
 	uint8_t left = lightpos >> 4;
 	uint8_t right = lightpos & 0x0F;
+	uint8_t lfield = dig_field();
+	use_sharps = 1;
 	//Set state leds
 	clear_led(LED1);
 	set_led(LED2);
@@ -307,15 +340,28 @@ void state_goal(uint8_t ballpos, uint8_t lightpos)
 	else clear_led(LED3);
 	if(right!= LD_NOLIGHT) set_led(LED4);
 	else clear_led(LED4);
-	if( ((left!= LD_NOLIGHT) || (right != LD_NOLIGHT))){
-		if( (left == LD_GOALLIGHT) && (right == LD_GOALLIGHT) ){
-			substate = 8;
+	//Check lights
+	if( ((left != LD_NOLIGHT) && (right != LD_NOLIGHT))){
+		if( (left >= LD_FARLIGHT) && (right >= LD_FARLIGHT)){
+			if(lfield != field){
+				//set state goal
+				state = state_goal;
+				reset_state();
+				return;
 			}
-		else if(substate <= 3){
+			else{
+				//turn around
+				turn_around();
+				reset_state();
+				return;
+			}
+		}
+		if(substate <= 3){
 			substate = 4;
 		}
 	}
 	else if( substate > 3){
+		//TODO: Go back to field search
 		substate = 0;
 	}
 	switch(substate){
@@ -371,25 +417,92 @@ void state_goal(uint8_t ballpos, uint8_t lightpos)
 			}
 			break;
 		case 5: //SCAN LIGHT LEFT
-			set_motor_left(80, MOTOR_FORWARD);
-			set_motor_right(130, MOTOR_FORWARD);
+			set_motor_left(SEARCH_BASE_LOW_SPEED, MOTOR_FORWARD);
+			set_motor_right(SEARCH_BASE_HIGH_SPEED, MOTOR_FORWARD);
 			_delay_ms(30);
 			substate = 4;
 			break;
 		case 6: //SCAN LIGHT RIGHT
-			set_motor_left(130, MOTOR_FORWARD);
-			set_motor_right(80, MOTOR_FORWARD);
+			set_motor_left(SEARCH_BASE_HIGH_SPEED, MOTOR_FORWARD);
+			set_motor_right(SEARCH_BASE_LOW_SPEED, MOTOR_FORWARD);
 			_delay_ms(30);
 			substate = 4;
 			break;
 		case 7: //GO FORWARD
-			set_motor_left(150, MOTOR_FORWARD);
-			set_motor_right(150, MOTOR_FORWARD);
+			set_motor_left(200, MOTOR_FORWARD);
+			set_motor_right(200, MOTOR_FORWARD);
 			_delay_ms(30);
 			substate = 4;
 			break;
-		case 8:
+		default: break;
+	}
+	
+}
+
+void state_goal(uint8_t ballpos, uint8_t lightpos)
+{
+	static uint8_t substate = 0;
+	static uint8_t i = 0;
+	uint8_t left = lightpos >> 4;
+	uint8_t right = lightpos & 0x0F;
+	uint8_t lfield = dig_field();
+	use_sharps = 0;
+	//Set state leds
+	set_led(LED1);
+	set_led(LED2);
+	//Set sensor leds
+	if(left != LD_NOLIGHT) set_led(LED3);
+	else clear_led(LED3);
+	if(right!= LD_NOLIGHT) set_led(LED4);
+	else clear_led(LED4);
+	if( ((left == LD_NOLIGHT) && (right == LD_NOLIGHT))){
+		//TODO: Go back to field search
+		state = state_field;
+		reset_state();
+		return;
+	}
+	else{
+		if( ((left > LD_CLOSELIGHT) && (right > LD_CLOSELIGHT)) && (lfield != field)){
+			substate = 4;
+		}
+		else if( ((left == LD_GOALLIGHT) || (right == LD_GOALLIGHT)) && (lfield != field)){
+			substate = 4;
+		}
+	}
+	switch(substate){
+		case 0:
+			if( left > right){
+				substate = 1;
+			}
+			else if( right > left){
+				substate = 2;
+			}
+			else{ // left == right
+				substate = 3;
+			}
+			break;
+		case 1: //SCAN LIGHT LEFT
+			set_motor_left(80, MOTOR_FORWARD);
+			set_motor_right(130, MOTOR_FORWARD);
+			_delay_ms(30);
+			substate = 0;
+			break;
+		case 2: //SCAN LIGHT RIGHT
+			set_motor_left(130, MOTOR_FORWARD);
+			set_motor_right(80, MOTOR_FORWARD);
+			_delay_ms(30);
+			substate = 0;
+			break;
+		case 3: //GO FORWARD
+			set_motor_left(150, MOTOR_FORWARD);
+			set_motor_right(150, MOTOR_FORWARD);
+			_delay_ms(30);
+			substate = 0;
+			break;
+		case 4:
 			shoot();
+			state = state_search;
+			reset_state();
 			break;
 		default: break;
 	}
@@ -466,25 +579,26 @@ int main()
 	}
 	
 	set_led(LED1);
-	_delay_ms(500);
+	_delay_ms(100);
 	
 	clear_led(LED1);
 	set_led(LED2);
-	_delay_ms(500);
+	_delay_ms(100);
 	
 	clear_led(LED2);
 	set_led(LED3);
-	_delay_ms(500);
+	_delay_ms(100);
 	
 	clear_led(LED3);
 	set_led(LED4);
-	_delay_ms(500);
+	_delay_ms(100);
 	
 	clear_led(LED4);
-	_delay_ms(500);
+	_delay_ms(100);
 	
+	set_roller(200, MOTOR_FORWARD);
 	field = dig_field();
-	state = state_goal;
+	state = state_search;
 	for(;;){
 		football_logic();
 	}
