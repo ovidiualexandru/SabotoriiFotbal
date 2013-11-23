@@ -233,7 +233,7 @@ void football_logic()
 		}
 	}
 	if(balls >= 3){
-		state = state_field;
+		state = state_goal;
 	}
 	state(ballpos, lightpos);
 }
@@ -323,15 +323,13 @@ void state_search(uint8_t ballpos, uint8_t lightpos)
 
 #define SEARCH_BASE_HIGH_SPEED 150
 #define SEARCH_BASE_LOW_SPEED 120
-
-void state_field(uint8_t ballpos, uint8_t lightpos)
+void state_goal(uint8_t ballpos, uint8_t lightpos)
 {
 	static uint8_t substate = 0;
 	static uint8_t i = 0;
 	uint8_t left = lightpos >> 4;
 	uint8_t right = lightpos & 0x0F;
 	uint8_t lfield = dig_field();
-	use_sharps = 1;
 	//Set state leds
 	clear_led(LED1);
 	set_led(LED2);
@@ -340,30 +338,23 @@ void state_field(uint8_t ballpos, uint8_t lightpos)
 	else clear_led(LED3);
 	if(right!= LD_NOLIGHT) set_led(LED4);
 	else clear_led(LED4);
-	//Check lights
-	if( ((left != LD_NOLIGHT) && (right != LD_NOLIGHT))){
-		if( (left >= LD_FARLIGHT) && (right >= LD_FARLIGHT)){
-			if(lfield != field){
-				//set state goal
-				state = state_goal;
-				reset_state();
-				return;
+	if( ((left!= LD_NOLIGHT) || (right != LD_NOLIGHT))){
+		if( (left == LD_GOALLIGHT) && (right == LD_GOALLIGHT) ){
+			if(!field) substate = 8;
+			else turn_around();
 			}
-			else{
-				//turn around
-				turn_around();
-				reset_state();
-				return;
-			}
-		}
-		if(substate <= 3){
+		else if(substate <= 3){
 			substate = 4;
+		}
+		if( ((left >= LD_MEDIUMLIGHT) || (right >= LD_MEDIUMLIGHT)) && (lfield == field)){
+			turn_around();
 		}
 	}
 	else if( substate > 3){
-		//TODO: Go back to field search
 		substate = 0;
 	}
+	if(substate < 3) use_sharps = 1;
+	else use_sharps = 0;
 	switch(substate){
 		case 0: //SCAN LEFT
 			set_motor_left(SCAN_BASE_SPEED, MOTOR_BACKWARD);
@@ -417,89 +408,24 @@ void state_field(uint8_t ballpos, uint8_t lightpos)
 			}
 			break;
 		case 5: //SCAN LIGHT LEFT
-			set_motor_left(SEARCH_BASE_LOW_SPEED, MOTOR_FORWARD);
-			set_motor_right(SEARCH_BASE_HIGH_SPEED, MOTOR_FORWARD);
+			set_motor_left(80, MOTOR_FORWARD);
+			set_motor_right(130, MOTOR_FORWARD);
 			_delay_ms(30);
 			substate = 4;
 			break;
 		case 6: //SCAN LIGHT RIGHT
-			set_motor_left(SEARCH_BASE_HIGH_SPEED, MOTOR_FORWARD);
-			set_motor_right(SEARCH_BASE_LOW_SPEED, MOTOR_FORWARD);
+			set_motor_left(130, MOTOR_FORWARD);
+			set_motor_right(80, MOTOR_FORWARD);
 			_delay_ms(30);
 			substate = 4;
 			break;
 		case 7: //GO FORWARD
-			set_motor_left(200, MOTOR_FORWARD);
-			set_motor_right(200, MOTOR_FORWARD);
-			_delay_ms(30);
-			substate = 4;
-			break;
-		default: break;
-	}
-	
-}
-
-void state_goal(uint8_t ballpos, uint8_t lightpos)
-{
-	static uint8_t substate = 0;
-	static uint8_t i = 0;
-	uint8_t left = lightpos >> 4;
-	uint8_t right = lightpos & 0x0F;
-	uint8_t lfield = dig_field();
-	use_sharps = 0;
-	//Set state leds
-	set_led(LED1);
-	set_led(LED2);
-	//Set sensor leds
-	if(left != LD_NOLIGHT) set_led(LED3);
-	else clear_led(LED3);
-	if(right!= LD_NOLIGHT) set_led(LED4);
-	else clear_led(LED4);
-	if( ((left == LD_NOLIGHT) && (right == LD_NOLIGHT))){
-		//TODO: Go back to field search
-		state = state_field;
-		reset_state();
-		return;
-	}
-	else{
-		if( ((left > LD_CLOSELIGHT) && (right > LD_CLOSELIGHT)) && (lfield != field)){
-			substate = 4;
-		}
-		else if( ((left == LD_GOALLIGHT) || (right == LD_GOALLIGHT)) && (lfield != field)){
-			substate = 4;
-		}
-	}
-	switch(substate){
-		case 0:
-			if( left > right){
-				substate = 1;
-			}
-			else if( right > left){
-				substate = 2;
-			}
-			else{ // left == right
-				substate = 3;
-			}
-			break;
-		case 1: //SCAN LIGHT LEFT
-			set_motor_left(80, MOTOR_FORWARD);
-			set_motor_right(130, MOTOR_FORWARD);
-			_delay_ms(30);
-			substate = 0;
-			break;
-		case 2: //SCAN LIGHT RIGHT
-			set_motor_left(130, MOTOR_FORWARD);
-			set_motor_right(80, MOTOR_FORWARD);
-			_delay_ms(30);
-			substate = 0;
-			break;
-		case 3: //GO FORWARD
 			set_motor_left(150, MOTOR_FORWARD);
 			set_motor_right(150, MOTOR_FORWARD);
 			_delay_ms(30);
-			substate = 0;
+			substate = 4;
 			break;
-		case 4:
+		case 8:
 			shoot();
 			state = state_search;
 			reset_state();
