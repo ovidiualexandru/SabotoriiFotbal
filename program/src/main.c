@@ -185,7 +185,6 @@ void shoot()
 	set_motor_left(0, MOTOR_FORWARD);
 	set_motor_right(0, MOTOR_FORWARD);
 	_delay_ms(300);
-	balls = 0;
 }
 
 void turn_around(){
@@ -234,6 +233,7 @@ void football_logic()
 	}
 	if(balls >= 3){
 		state = state_field;
+		balls = 0;
 	}
 	state(ballpos, lightpos);
 }
@@ -462,7 +462,7 @@ void state_goal(uint8_t ballpos, uint8_t lightpos)
 		return;
 	}
 	else{
-		if( ((left > LD_CLOSELIGHT) && (right > LD_CLOSELIGHT)) && (lfield != field)){
+		if( ((left > LD_FARLIGHT) && (right > LD_FARLIGHT)) && (lfield != field)){
 			substate = 4;
 		}
 		else if( ((left == LD_GOALLIGHT) || (right == LD_GOALLIGHT)) && (lfield != field)){
