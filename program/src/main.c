@@ -9,9 +9,9 @@
 #include "config.h"
 
 threshold_t sensor_thresholds;
-uint8_t field;
-uint8_t balls = 0;
-uint8_t use_sharps = 1;
+volatile uint8_t field;
+volatile uint8_t balls = 0;
+volatile uint8_t use_sharps = 1;
 void state_search(uint8_t ballpos, uint8_t lightpos);
 void state_field(uint8_t ballpos, uint8_t lightpos);
 void state_goal(uint8_t ballpos, uint8_t lightpos);
@@ -193,13 +193,13 @@ void turn_around(){
 	_delay_ms(500);
 	set_motor_left(200, MOTOR_FORWARD);
 	set_motor_right(200, MOTOR_BACKWARD);
-	_delay_ms(600);
+	_delay_ms(400);
 	set_motor_left(0, MOTOR_FORWARD);
 	set_motor_right(0, MOTOR_FORWARD);
 	_delay_ms(1000);
 	set_motor_left(200, MOTOR_FORWARD);
 	set_motor_right(200, MOTOR_FORWARD);
-	_delay_ms(900);
+	_delay_ms(700);
 	set_motor_left(0, MOTOR_FORWARD);
 	set_motor_right(0, MOTOR_FORWARD);
 	_delay_ms(600);
@@ -223,7 +223,7 @@ void football_logic()
 	uint8_t ballpos = ball_detection(up, down);
 	uint8_t lightpos = light_detection(left, right);
 
-	if( use_sharps){
+	if( *((volatile uint8_t* )&use_sharps)){
 		if(dig_sharp(DIG_SHARP_LEFT) || ballpos == BD_TOOCLOSE){
 			too_close_left();
 		}
@@ -231,10 +231,7 @@ void football_logic()
 			too_close_right();
 		}
 	}
-	if(balls >= 3){
-		state = state_field;
-		balls = 0;
-	}
+
 	state(ballpos, lightpos);
 }
 /****************************************/
@@ -243,11 +240,11 @@ void football_logic()
 /*****************************************
 State machine logic
 *****************************************/
-#define SCAN_BASE_SPEED 130
+#define SCAN_BASE_SPEED 110
 #define SCAN_GO_FORWARD_SPEED 130
 
-#define SCAN_LEFT_TIME 60
-#define SCAN_RIGHT_TIME 140
+#define SCAN_LEFT_TIME 70
+#define SCAN_RIGHT_TIME 120
 #define SCAN_STRAIGHTEN_TIME 60
 #define SCAN_GO_FORWARD_TIME 160
 
@@ -276,13 +273,17 @@ void state_search(uint8_t ballpos, uint8_t lightpos)
 		reset_state();
 		// TODO : complete code
 	}
+	if(balls >= 3){
+		state = state_field;
+		balls = 0;
+	}
 	switch(substate){
 		case 0: //SCAN LEFT
 			set_motor_left(SCAN_BASE_SPEED, MOTOR_BACKWARD);
 			set_motor_right(SCAN_BASE_SPEED, MOTOR_FORWARD);
 			_delay_ms(10);
 			i++;
-			if( i == SCAN_LEFT_TIME){
+			if( i >= SCAN_LEFT_TIME){
 				substate = 1;
 				i = 0;
 			}
@@ -292,7 +293,7 @@ void state_search(uint8_t ballpos, uint8_t lightpos)
 			set_motor_right(SCAN_BASE_SPEED, MOTOR_BACKWARD);
 			_delay_ms(10);
 			i++;
-			if( i == SCAN_RIGHT_TIME){
+			if( i >= SCAN_RIGHT_TIME){
 				substate = 2;
 				i = 0;
 			}
@@ -302,7 +303,7 @@ void state_search(uint8_t ballpos, uint8_t lightpos)
 			set_motor_right(SCAN_BASE_SPEED, MOTOR_FORWARD);
 			_delay_ms(10);
 			i++;
-			if( i == SCAN_STRAIGHTEN_TIME){
+			if( i >= SCAN_STRAIGHTEN_TIME){
 				substate = 3;
 				i = 0;
 			}
@@ -312,7 +313,7 @@ void state_search(uint8_t ballpos, uint8_t lightpos)
 			set_motor_right(SCAN_GO_FORWARD_SPEED, MOTOR_FORWARD);
 			_delay_ms(10);
 			i++;
-			if( i == SCAN_GO_FORWARD_TIME){
+			if( i >= SCAN_GO_FORWARD_TIME){
 				substate = 0;
 				i = 0;
 			}
@@ -595,9 +596,11 @@ int main()
 	
 	clear_led(LED4);
 	_delay_ms(100);
-	
-	set_roller(200, MOTOR_FORWARD);
+	_delay_ms(4600);
+	set_roller(150, MOTOR_FORWARD);
 	field = dig_field();
+	if(field) set_led_field();
+	else clear_led_field();
 	state = state_search;
 	for(;;){
 		football_logic();
